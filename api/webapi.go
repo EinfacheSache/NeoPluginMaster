@@ -1,6 +1,7 @@
 package api
 
 import (
+	"NeoPluginMaster/exporter"
 	"encoding/json"
 	"fmt"
 	"golang.org/x/time/rate"
@@ -10,7 +11,6 @@ import (
 )
 
 type stats struct {
-	BackendID      string  `json:"backendID"`
 	PlayerAmount   float64 `json:"playerAmount"`
 	ManagedServers float64 `json:"managedServers"`
 	OnlineMode     int     `json:"onlineMode"`
@@ -23,6 +23,7 @@ type stats struct {
 	CoreCount      int     `json:"coreCount"`
 	PluginVersion  string  `json:"pluginVersion"`
 	latestPing     int64
+	backendID      string
 }
 
 type ResponseMessage struct {
@@ -42,8 +43,13 @@ func Run() {
 }
 
 func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request)) http.Handler {
-	limiter := rate.NewLimiter(2, 1)
+	limiter := rate.NewLimiter(rate.Every(5*time.Second), 1)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
 		if !limiter.Allow() {
 			message := ResponseMessage{
 				Status: "Rate limit exceeded",
@@ -53,7 +59,7 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 			w.WriteHeader(http.StatusTooManyRequests)
 			err := json.NewEncoder(w).Encode(&message)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 			return
 		} else {
@@ -63,12 +69,13 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 }
 
 func pluginMetrics(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	var statsRequest stats
+	statsRequest.backendID = r.Header.Get("backendID")
+	if statsRequest.backendID == "" {
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	var statsRequest stats
 	err := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -76,40 +83,44 @@ func pluginMetrics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-
-	// Set latestping ...
 	statsRequest.latestPing = time.Now().UnixMilli()
 
-	latestStats, ok := BackendStats[statsRequest.BackendID]
+	latestStats, ok := BackendStats[statsRequest.backendID]
 	if ok {
 		PlayerCount -= latestStats.PlayerAmount
-		ServerCount -= latestStats.ManagedServers
+		ServerCount -= 1
 	}
 	PlayerCount += statsRequest.PlayerAmount
-	ServerCount += latestStats.ManagedServers
+	ServerCount += 1
 
-	BackendStats[statsRequest.BackendID] = statsRequest
+	BackendStats[statsRequest.backendID] = statsRequest
 
-	go startTimeout(statsRequest.BackendID)
+	exporter.PlayerAmount.Set(PlayerCount)
+	exporter.ServerAmount.Set(ServerCount)
 
+	go startTimeout(statsRequest.backendID)
 }
 
 func startTimeout(backendID string) {
-	// wait 60 seconds until check
-	time.Sleep(time.Second * 30)
+	// wait 10 seconds until check
+	time.Sleep(time.Second * 20)
 	// get stats for id
 	stats, ok := BackendStats[backendID]
 	if !ok {
-		// Key isn't in map anymore
+		fmt.Printf("cant found key in map %s\n", backendID)
 		return
 	}
 	// Check how long since latest ping
-	if time.Now().UnixMilli()-stats.latestPing < 1000*40 {
+	if time.Now().UnixMilli()-stats.latestPing < 1000*20 {
 		// Server did not timeout and send ping in latest 40 sec -> dont delete
 		return
 	}
 	// Server most likely was stopped -> time out -> delete id from map
 	PlayerCount -= stats.PlayerAmount
-	ServerCount -= stats.ManagedServers
+	ServerCount -= 1
+
 	delete(BackendStats, backendID)
+
+	exporter.PlayerAmount.Set(PlayerCount)
+	exporter.ServerAmount.Set(ServerCount)
 }

@@ -1,7 +1,6 @@
 package exporter
 
 import (
-	"NeoPluginMaster/api"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -19,13 +18,13 @@ func Run() {
 		Name: "plugin_player_amount",
 		Help: "show the amount of players online",
 	})
-	PlayerAmount.Set(api.PlayerCount)
+	PlayerAmount.Set(0)
 
 	ServerAmount = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "plugin_server_amount",
 		Help: "show the amount of server online",
 	})
-	ServerAmount.Set(api.ServerCount)
+	ServerAmount.Set(0)
 
 	/*
 		playerCounter = promauto.NewCounterVec(prometheus.CounterOpts{
