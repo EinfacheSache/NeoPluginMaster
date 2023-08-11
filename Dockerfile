@@ -3,6 +3,7 @@ FROM golang:1.20-bookworm
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY . .
+RUN chmod +x build.sh && ./build.sh
 RUN ./build.sh
 
 # actual container
