@@ -25,4 +25,4 @@ USER $USERNAME
 EXPOSE 8069
 EXPOSE 8080
 
-CMD ["./NeoPluginMaster"]
+CMD ["./neo-plugin-master"]
