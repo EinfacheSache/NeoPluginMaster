@@ -7,6 +7,7 @@ import (
 	"log"
 	"neo-plugin-master/exporter"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -32,6 +33,7 @@ type ResponseMessage struct {
 }
 
 var BackendStats = map[string]stats{}
+var BackendStatsMutex = new(sync.RWMutex)
 
 var ServerCount = float64(0)
 var PlayerCount = float64(0)
@@ -85,7 +87,9 @@ func pluginMetrics(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	statsRequest.latestPing = time.Now().UnixMilli()
 
+	BackendStatsMutex.RLock()
 	latestStats, ok := BackendStats[statsRequest.backendID]
+	BackendStatsMutex.RUnlock()
 	if ok {
 		PlayerCount -= latestStats.PlayerAmount
 		ServerCount -= 1
@@ -93,7 +97,9 @@ func pluginMetrics(w http.ResponseWriter, r *http.Request) {
 	PlayerCount += statsRequest.PlayerAmount
 	ServerCount += 1
 
+	BackendStatsMutex.Lock()
 	BackendStats[statsRequest.backendID] = statsRequest
+	BackendStatsMutex.Unlock()
 
 	exporter.PlayerAmount.Set(PlayerCount)
 	exporter.ServerAmount.Set(ServerCount)
@@ -105,7 +111,9 @@ func startTimeout(backendID string) {
 	// wait 10 seconds until check
 	time.Sleep(time.Second * 20)
 	// get stats for id
+	BackendStatsMutex.RLock()
 	stats, ok := BackendStats[backendID]
+	BackendStatsMutex.RUnlock()
 	if !ok {
 		fmt.Printf("cant found key in map %s\n", backendID)
 		return
@@ -119,7 +127,9 @@ func startTimeout(backendID string) {
 	PlayerCount -= stats.PlayerAmount
 	ServerCount -= 1
 
+	BackendStatsMutex.Lock()
 	delete(BackendStats, backendID)
+	BackendStatsMutex.Unlock()
 
 	exporter.PlayerAmount.Set(PlayerCount)
 	exporter.ServerAmount.Set(ServerCount)
