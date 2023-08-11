@@ -1,4 +1,4 @@
-module NeoPluginMaster
+module neo-plugin-master
 
 go 1.20
 

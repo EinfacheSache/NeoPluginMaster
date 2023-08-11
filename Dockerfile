@@ -8,7 +8,7 @@ RUN ./build.sh
 # actual container
 FROM alpine:3
 
-ENV ARTIFACT_NAME=NeoPluginMaster
+ENV ARTIFACT_NAME=neo-plugin-master
 ENV APP_HOME=/usr/app/
 
 ARG USERNAME=neopluginmaster
