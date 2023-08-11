@@ -9,7 +9,6 @@ deploy_container:
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker buildx create --use --name mybuilder  # Erstelle und aktiviere den Buildx-Builder
-    - docker buildx build --platform linux/arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
+    - docker buildx build --platform linux/arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --push .
   only:
     - main
