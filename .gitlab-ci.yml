@@ -3,7 +3,7 @@ stages:
 
 deploy_container:
   stage: deploy
-  image: docker:23
+  image: docker:latest  # Verwende die neueste Version von Docker oder eine, die buildx unterstützt
   services:
     - docker:dind
   script:
