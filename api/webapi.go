@@ -93,6 +93,9 @@ func pluginMetrics(w http.ResponseWriter, r *http.Request) {
 	BackendStatsMutex.RLock()
 	latestStats, ok := BackendStats[statsRequest.backendID]
 	BackendStatsMutex.RUnlock()
+
+	fmt.Println(latestStats)
+
 	if ok {
 		PlayerCount -= latestStats.PlayerAmount
 		ServerCount -= 1
