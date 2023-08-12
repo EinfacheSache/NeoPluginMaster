@@ -55,6 +55,9 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
+		fmt.Println("limit: ", limiter.Limit())
+		fmt.Println("burst: ", limiter.Burst())
+
 		limiterMutex.Lock()
 		if !limiter.Allow() {
 			limiterMutex.Unlock()
