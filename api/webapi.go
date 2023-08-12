@@ -14,14 +14,14 @@ import (
 type stats struct {
 	PlayerAmount   float64 `json:"playerAmount"`
 	ManagedServers float64 `json:"managedServers"`
-	OnlineMode     int     `json:"onlineMode"`
+	OnlineMode     bool    `json:"onlineMode"`
 	ServerVersion  string  `json:"serverVersion"`
 	ServerName     string  `json:"serverName"`
 	JavaVersion    string  `json:"javaVersion"`
 	OsName         string  `json:"osName"`
 	OsArch         string  `json:"osArch"`
 	OsVersion      string  `json:"osVersion"`
-	CoreCount      int     `json:"coreCount"`
+	CoreCount      float64 `json:"coreCount"`
 	PluginVersion  string  `json:"pluginVersion"`
 	latestPing     int64
 	backendID      string
