@@ -36,6 +36,7 @@ var BackendStats = map[string]stats{}
 var BackendStatsMutex = new(sync.RWMutex)
 
 var limiter = rate.NewLimiter(rate.Every(1*time.Second), 25)
+var limiterMutex = new(sync.RWMutex)
 
 var ServerCount = float64(0)
 var PlayerCount = float64(0)
@@ -54,7 +55,9 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
+		limiterMutex.Lock()
 		if !limiter.Allow() {
+			limiterMutex.Unlock()
 			message := ResponseMessage{
 				Status: "Rate limit exceeded",
 				Body:   "You are being rate limitted. Please try again later.",
@@ -68,6 +71,7 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 			fmt.Println("rate limit exceeded")
 			return
 		} else {
+			limiterMutex.Unlock()
 			next(w, r)
 		}
 	})
