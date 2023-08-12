@@ -35,6 +35,8 @@ type ResponseMessage struct {
 var BackendStats = map[string]stats{}
 var BackendStatsMutex = new(sync.RWMutex)
 
+var limiter = rate.NewLimiter(rate.Every(1*time.Second), 25)
+
 var ServerCount = float64(0)
 var PlayerCount = float64(0)
 
@@ -45,7 +47,6 @@ func Run() {
 }
 
 func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request)) http.Handler {
-	limiter := rate.NewLimiter(rate.Every(1*time.Second), 25)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
