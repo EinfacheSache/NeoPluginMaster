@@ -49,6 +49,7 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			fmt.Println("Method not allowed")
 			return
 		}
 
@@ -63,7 +64,7 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			_ = fmt.Errorf("rate limit exceeded")
+			fmt.Println("rate limit exceeded")
 			return
 		} else {
 			next(w, r)
@@ -76,14 +77,14 @@ func pluginMetrics(w http.ResponseWriter, r *http.Request) {
 	statsRequest.backendID = r.Header.Get("backendID")
 	if statsRequest.backendID == "" {
 		w.WriteHeader(http.StatusNotFound)
-		_ = fmt.Errorf("request failed: backendID not provided")
+		fmt.Println("request failed: backendID not provided")
 		return
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		_ = fmt.Errorf("request failed: formated error")
+		fmt.Println("request failed: formatted error")
 		return
 	}
 
