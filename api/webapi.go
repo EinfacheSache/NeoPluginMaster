@@ -45,15 +45,13 @@ func Run() {
 }
 
 func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request)) http.Handler {
-	limiter := rate.NewLimiter(rate.Every(1*time.Second/25), 25)
+	limiter := rate.NewLimiter(rate.Every(1*time.Second/50), 50)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			fmt.Println("Method not allowed")
 			return
 		}
-
-		fmt.Println("limit: ", limiter.Limit())
 
 		if !limiter.Allow() {
 			message := ResponseMessage{
