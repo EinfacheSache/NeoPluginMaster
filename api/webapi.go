@@ -63,6 +63,7 @@ func pluginMetricsWithRateLimit(next func(w http.ResponseWriter, r *http.Request
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
+			_ = fmt.Errorf("rate limit exceeded")
 			return
 		} else {
 			next(w, r)
@@ -75,12 +76,14 @@ func pluginMetrics(w http.ResponseWriter, r *http.Request) {
 	statsRequest.backendID = r.Header.Get("backendID")
 	if statsRequest.backendID == "" {
 		w.WriteHeader(http.StatusNotFound)
+		_ = fmt.Errorf("request failed: backendID not provided")
 		return
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		_ = fmt.Errorf("request failed: formated error")
 		return
 	}
 
@@ -108,9 +111,9 @@ func pluginMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 func startTimeout(backendID string) {
-	// wait 10 seconds until check
+
 	time.Sleep(time.Second * 20)
-	// get stats for id
+
 	BackendStatsMutex.RLock()
 	stats, ok := BackendStats[backendID]
 	BackendStatsMutex.RUnlock()
@@ -118,12 +121,12 @@ func startTimeout(backendID string) {
 		fmt.Printf("cant found key in map %s\n", backendID)
 		return
 	}
-	// Check how long since latest ping
+
 	if time.Now().UnixMilli()-stats.latestPing < 1000*20 {
 		// Server did not timeout and send ping in latest 40 sec -> dont delete
 		return
 	}
-	// Server most likely was stopped -> time out -> delete id from map
+
 	PlayerCount -= stats.PlayerAmount
 	ServerCount -= 1
 
