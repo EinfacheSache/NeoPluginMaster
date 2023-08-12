@@ -14,8 +14,9 @@ func main() {
 }
 
 func reader() {
+	time.Sleep(time.Second * 1)
 	for { // Endlosschleife
-		time.Sleep(time.Second * 5)
 		fmt.Println("PlayerCount ", api.PlayerCount)
+		time.Sleep(time.Second * 5)
 	}
 }
