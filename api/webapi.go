@@ -112,7 +112,7 @@ func pluginMetrics(statsRequest stats) {
 		"server_version": statsRequest.ServerVersion,
 	}
 
-	exporter.PluginVersion.With(labels).Inc()
+	exporter.PluginVersion.With(labels).Add(1)
 	exporter.PlayerAmount.Set(PlayerCount)
 	exporter.ServerAmount.Set(ServerCount)
 
@@ -125,7 +125,7 @@ func pluginMetrics(statsRequest stats) {
 
 func startTimeout(backendID string) {
 
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 300)
 
 	BackendStatsMutex.RLock()
 	lastStats, ok := BackendStats[backendID]
@@ -135,7 +135,7 @@ func startTimeout(backendID string) {
 		return
 	}
 
-	if time.Now().UnixMilli()-lastStats.latestPing < 1000*30 {
+	if time.Now().UnixMilli()-lastStats.latestPing < 1000*300 {
 		// Server did not timeout and send ping in latest 40 sec -> dont delete
 		return
 	}
