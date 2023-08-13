@@ -2,7 +2,6 @@
 FROM golang:1.20-bookworm
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
-RUN apk add --no-cache git
 COPY . .
 RUN chmod +x build.sh && ./build.sh
 RUN ./build.sh
