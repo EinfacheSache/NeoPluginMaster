@@ -108,19 +108,30 @@ func pluginMetrics(statsRequest stats) {
 
 	PlayerCount += statsRequest.PlayerAmount
 	ServerCount += 1
-	labels := prometheus.Labels{
-		"server_version": statsRequest.ServerVersion,
-	}
 
-	exporter.PluginVersion.With(labels).Add(1)
 	exporter.PlayerAmount.Set(PlayerCount)
 	exporter.ServerAmount.Set(ServerCount)
+
+	addLabel(exporter.ServerVersion, "server_version", statsRequest.ServerVersion)
+	addLabel(exporter.PluginVersion, "plugin_version", statsRequest.PluginVersion)
 
 	BackendStatsMutex.Lock()
 	BackendStats[statsRequest.backendID] = statsRequest
 	BackendStatsMutex.Unlock()
 
 	go startTimeout(statsRequest.backendID)
+}
+
+func addLabel(metrics *prometheus.CounterVec, key string, value string) {
+	if value == "" {
+		return
+	}
+
+	labels := prometheus.Labels{
+		key: value,
+	}
+
+	metrics.With(labels).Add(1)
 }
 
 func startTimeout(backendID string) {
