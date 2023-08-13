@@ -1,29 +1,14 @@
 stages:
   - deploy
 
-before_script:
-  - echo "Preparing environment..."
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-
-build_image:
+deploy_container:
   stage: deploy
-  image: docker:20
+  image: docker:23
   services:
     - docker:dind
   script:
-    - docker buildx create --use
-    - - docker buildx build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --platform linux/arm64 -f Dockerfile -t dependencies-cache --cache-from=type=local,src=/root/.cache --cache-to=type=local,dest=/root/.cache .
-  only:
-    - main
-
-push_image:
-  stage: deploy
-  image: docker:20
-  services:
-    - docker:dind
-  script:
-    - docker buildx create --use
-    - - docker buildx build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --platform linux/arm64 -f Dockerfile -t dependencies-cache --cache-from=type=local,src=/root/.cache --cache-to=type=local,dest=/root/.cache .
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
   only:
     - main
