@@ -8,6 +8,7 @@ import (
 	"log"
 	"neo-plugin-master/exporter"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -35,6 +36,9 @@ type ResponseMessage struct {
 
 var BackendStats = map[string]stats{}
 var BackendStatsMutex = new(sync.RWMutex)
+
+var BackendServerStats = map[string]prometheus.Labels{}
+var BackendServerStatsMutex = new(sync.RWMutex)
 
 var ServerCount = float64(0)
 var PlayerCount = float64(0)
@@ -104,6 +108,13 @@ func pluginMetrics(statsRequest stats) {
 		delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
 	}
 
+	BackendServerStatsMutex.RLock()
+	latestServerStats, ok2 := BackendServerStats[statsRequest.backendID]
+	BackendServerStatsMutex.RUnlock()
+	if ok2 {
+		exporter.ServerStats.DeletePartialMatch(latestServerStats)
+	}
+
 	PlayerCount += statsRequest.PlayerAmount
 	ServerCount += 1
 
@@ -112,6 +123,7 @@ func pluginMetrics(statsRequest stats) {
 
 	addLabel(exporter.ServerVersion, "server_version", statsRequest.ServerVersion)
 	addLabel(exporter.PluginVersion, "plugin_version", statsRequest.PluginVersion)
+	addServerStatsLabel(statsRequest)
 
 	BackendStatsMutex.Lock()
 	BackendStats[statsRequest.backendID] = statsRequest
@@ -144,6 +156,26 @@ func delLabel(metrics *prometheus.CounterVec, key string, value string) {
 	metrics.DeletePartialMatch(label)
 }
 
+func addServerStatsLabel(statsRequest stats) {
+	label := prometheus.Labels{
+		"online_mode":     strconv.FormatBool(statsRequest.OnlineMode),
+		"player_amount":   fmt.Sprintf("%f", statsRequest.PlayerAmount),
+		"managed_servers": fmt.Sprintf("%f", statsRequest.ManagedServers),
+		"core_count":      fmt.Sprintf("%f", statsRequest.CoreCount),
+		"server_version":  statsRequest.ServerVersion,
+		"server_name":     statsRequest.ServerName,
+		"java_version":    statsRequest.JavaVersion,
+		"os_name":         statsRequest.OsName,
+		"os_arch":         statsRequest.OsArch,
+		"os_version":      statsRequest.OsVersion,
+		"plugin_version":  statsRequest.PluginVersion,
+	}
+
+	BackendServerStats[statsRequest.backendID] = label
+
+	exporter.ServerStats.With(label).Inc()
+}
+
 func startTimeout(backendID string) {
 
 	time.Sleep(time.Second * 30)
@@ -173,4 +205,14 @@ func startTimeout(backendID string) {
 	BackendStatsMutex.Lock()
 	delete(BackendStats, backendID)
 	BackendStatsMutex.Unlock()
+
+	BackendServerStatsMutex.RLock()
+	latestServerStats, ok2 := BackendServerStats[latestStats.backendID]
+	BackendServerStatsMutex.RUnlock()
+	if ok2 {
+		exporter.ServerStats.DeletePartialMatch(latestServerStats)
+		BackendStatsMutex.Lock()
+		delete(BackendStats, backendID)
+		BackendStatsMutex.Unlock()
+	}
 }
