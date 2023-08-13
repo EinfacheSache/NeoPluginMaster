@@ -39,7 +39,7 @@ var BackendStatsMutex = new(sync.RWMutex)
 var ServerCount = float64(0)
 var PlayerCount = float64(0)
 
-var limiter = rate.NewLimiter(rate.Every(1*time.Second/30), 1)
+var limiter = rate.NewLimiter(rate.Every(1*time.Second/30), 30)
 
 func Run() {
 	http.HandleFunc("/api/stats/plugin", pluginMetricsFailedHandler)
