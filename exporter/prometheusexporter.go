@@ -43,7 +43,7 @@ func Run() {
 	ServerStats = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "server_stats",
 		Help: "show the version of the servers",
-	}, []string{"online_mode", "player_amount", "managed_servers", "core_count", "server_version", "server_name", "java_version", "os_name", "os_arch", "os_version", "plugin_version"})
+	}, []string{"backendID", "online_mode", "player_amount", "managed_servers", "core_count", "server_version", "server_name", "java_version", "os_name", "os_arch", "os_version", "plugin_version"})
 
 	fmt.Println("PrometheusExporter started at 0.0.0.0:8069")
 	log.Fatal(http.ListenAndServe(":8069", nil))

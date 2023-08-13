@@ -158,6 +158,7 @@ func delLabel(metrics *prometheus.CounterVec, key string, value string) {
 
 func addServerStatsLabel(statsRequest stats) {
 	label := prometheus.Labels{
+		"backendID":       statsRequest.backendID,
 		"online_mode":     strconv.FormatBool(statsRequest.OnlineMode),
 		"player_amount":   fmt.Sprintf("%f", statsRequest.PlayerAmount),
 		"managed_servers": fmt.Sprintf("%f", statsRequest.ManagedServers),
