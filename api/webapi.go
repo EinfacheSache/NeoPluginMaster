@@ -153,13 +153,19 @@ func startTimeout(backendID string) {
 
 	PlayerCount -= lastStats.PlayerAmount
 	ServerCount -= 1
-	labels := prometheus.Labels{
-		"server_version": lastStats.ServerVersion,
-	}
 
 	exporter.PlayerAmount.Set(PlayerCount)
 	exporter.ServerAmount.Set(ServerCount)
-	exporter.PluginVersion.DeletePartialMatch(labels)
+
+	PluginVersionLabels := prometheus.Labels{
+		"plugin_version": lastStats.PluginVersion,
+	}
+	exporter.PluginVersion.DeletePartialMatch(PluginVersionLabels)
+
+	ServerVersionLabel := prometheus.Labels{
+		"server_version": lastStats.ServerVersion,
+	}
+	exporter.ServerVersion.DeletePartialMatch(ServerVersionLabel)
 
 	BackendStatsMutex.Lock()
 	delete(BackendStats, backendID)
