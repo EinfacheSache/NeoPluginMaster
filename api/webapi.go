@@ -100,10 +100,8 @@ func pluginMetrics(statsRequest stats) {
 	if ok {
 		PlayerCount -= latestStats.PlayerAmount
 		ServerCount -= 1
-		labels := prometheus.Labels{
-			"server_version": latestStats.ServerVersion,
-		}
-		exporter.PluginVersion.DeletePartialMatch(labels)
+		delLabel(exporter.PluginVersion, "plugin_version", latestStats.PluginVersion)
+		delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
 	}
 
 	PlayerCount += statsRequest.PlayerAmount
@@ -127,11 +125,23 @@ func addLabel(metrics *prometheus.CounterVec, key string, value string) {
 		return
 	}
 
-	labels := prometheus.Labels{
+	label := prometheus.Labels{
 		key: value,
 	}
 
-	metrics.With(labels).Add(1)
+	metrics.With(label).Add(1)
+}
+
+func delLabel(metrics *prometheus.CounterVec, key string, value string) {
+	if value == "" {
+		return
+	}
+
+	label := prometheus.Labels{
+		key: value,
+	}
+
+	metrics.DeletePartialMatch(label)
 }
 
 func startTimeout(backendID string) {
@@ -139,33 +149,26 @@ func startTimeout(backendID string) {
 	time.Sleep(time.Second * 300)
 
 	BackendStatsMutex.RLock()
-	lastStats, ok := BackendStats[backendID]
+	latestStats, ok := BackendStats[backendID]
 	BackendStatsMutex.RUnlock()
 	if !ok {
 		fmt.Printf("cant found key in map %s\n", backendID)
 		return
 	}
 
-	if time.Now().UnixMilli()-lastStats.latestPing < 1000*300 {
+	if time.Now().UnixMilli()-latestStats.latestPing < 1000*300 {
 		// Server did not timeout and send ping in latest 40 sec -> dont delete
 		return
 	}
 
-	PlayerCount -= lastStats.PlayerAmount
+	PlayerCount -= latestStats.PlayerAmount
 	ServerCount -= 1
 
 	exporter.PlayerAmount.Set(PlayerCount)
 	exporter.ServerAmount.Set(ServerCount)
 
-	PluginVersionLabels := prometheus.Labels{
-		"plugin_version": lastStats.PluginVersion,
-	}
-	exporter.PluginVersion.DeletePartialMatch(PluginVersionLabels)
-
-	ServerVersionLabel := prometheus.Labels{
-		"server_version": lastStats.ServerVersion,
-	}
-	exporter.ServerVersion.DeletePartialMatch(ServerVersionLabel)
+	delLabel(exporter.PluginVersion, "plugin_version", latestStats.PluginVersion)
+	delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
 
 	BackendStatsMutex.Lock()
 	delete(BackendStats, backendID)
