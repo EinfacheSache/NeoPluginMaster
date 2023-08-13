@@ -146,7 +146,7 @@ func delLabel(metrics *prometheus.CounterVec, key string, value string) {
 
 func startTimeout(backendID string) {
 
-	time.Sleep(time.Second * 300)
+	time.Sleep(time.Second * 30)
 
 	BackendStatsMutex.RLock()
 	latestStats, ok := BackendStats[backendID]
@@ -156,7 +156,7 @@ func startTimeout(backendID string) {
 		return
 	}
 
-	if time.Now().UnixMilli()-latestStats.latestPing < 1000*300 {
+	if time.Now().UnixMilli()-latestStats.latestPing < 1000*30 {
 		// Server did not timeout and send ping in latest 40 sec -> dont delete
 		return
 	}
