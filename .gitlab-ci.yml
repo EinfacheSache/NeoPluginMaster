@@ -12,7 +12,7 @@ build_image:
     - docker:dind
   script:
     - docker buildx create --use
-    - docker buildx build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --platform linux/arm64 -f Dockerfile -t dependencies-cache --cache-from=type=local,src=/root/.cache .
+    - - docker buildx build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --platform linux/arm64 -f Dockerfile -t dependencies-cache --cache-from=type=local,src=/root/.cache --cache-to=type=local,dest=/root/.cache .
   only:
     - main
 
@@ -23,7 +23,7 @@ push_image:
     - docker:dind
   script:
     - docker buildx create --use
-    - docker buildx build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --platform linux/arm64 -f Dockerfile -t dependencies-cache --cache-from=type=local,src=/root/.cache .
+    - - docker buildx build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --platform linux/arm64 -f Dockerfile -t dependencies-cache --cache-from=type=local,src=/root/.cache --cache-to=type=local,dest=/root/.cache .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
   only:
     - main
