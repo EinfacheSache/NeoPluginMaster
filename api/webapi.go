@@ -14,19 +14,24 @@ import (
 )
 
 type stats struct {
-	PlayerAmount   float64 `json:"playerAmount"`
-	ManagedServers float64 `json:"managedServers"`
-	OnlineMode     bool    `json:"onlineMode"`
+	backendID      string
+	latestPing     int64
 	ServerVersion  string  `json:"serverVersion"`
 	ServerName     string  `json:"serverName"`
 	JavaVersion    string  `json:"javaVersion"`
 	OsName         string  `json:"osName"`
 	OsArch         string  `json:"osArch"`
 	OsVersion      string  `json:"osVersion"`
-	CoreCount      float64 `json:"coreCount"`
 	PluginVersion  string  `json:"pluginVersion"`
-	latestPing     int64
-	backendID      string
+	VersionStatus  string  `json:"versionStatus"`
+	UpdateSetting  string  `json:"updateSetting"`
+	NeoProtectPlan string  `json:"neoProtectPlan"`
+	ServerPlugins  string  `json:"serverPlugins"`
+	PlayerAmount   float64 `json:"playerAmount"`
+	ManagedServers float64 `json:"managedServers"`
+	CoreCount      float64 `json:"coreCount"`
+	OnlineMode     bool    `json:"onlineMode"`
+	ProxyProtocol  bool    `json:"proxyProtocol"`
 }
 
 type ResponseMessage struct {
@@ -158,18 +163,24 @@ func delLabel(metrics *prometheus.CounterVec, key string, value string) {
 
 func addServerStatsLabel(statsRequest stats) {
 	label := prometheus.Labels{
-		"backendID":       statsRequest.backendID,
-		"online_mode":     strconv.FormatBool(statsRequest.OnlineMode),
-		"player_amount":   fmt.Sprintf("%f", statsRequest.PlayerAmount),
-		"managed_servers": fmt.Sprintf("%f", statsRequest.ManagedServers),
-		"core_count":      fmt.Sprintf("%f", statsRequest.CoreCount),
-		"server_version":  statsRequest.ServerVersion,
-		"server_name":     statsRequest.ServerName,
-		"java_version":    statsRequest.JavaVersion,
-		"os_name":         statsRequest.OsName,
-		"os_arch":         statsRequest.OsArch,
-		"os_version":      statsRequest.OsVersion,
-		"plugin_version":  statsRequest.PluginVersion,
+		"backendID": statsRequest.backendID,
+
+		"server_version":   statsRequest.ServerVersion,
+		"server_name":      statsRequest.ServerName,
+		"java_version":     statsRequest.JavaVersion,
+		"os_name":          statsRequest.OsName,
+		"os_arch":          statsRequest.OsArch,
+		"os_version":       statsRequest.OsVersion,
+		"plugin_version":   statsRequest.PluginVersion,
+		"version_status":   statsRequest.VersionStatus,
+		"update_setting":   statsRequest.UpdateSetting,
+		"neo_protect_plan": statsRequest.NeoProtectPlan,
+		"server_plugins":   statsRequest.ServerPlugins,
+		"player_amount":    fmt.Sprintf("%f", statsRequest.PlayerAmount),
+		"managed_servers":  fmt.Sprintf("%f", statsRequest.ManagedServers),
+		"core_count":       fmt.Sprintf("%f", statsRequest.CoreCount),
+		"online_mode":      strconv.FormatBool(statsRequest.OnlineMode),
+		"proxy_protocol":   strconv.FormatBool(statsRequest.ProxyProtocol),
 	}
 
 	BackendServerStats[statsRequest.backendID] = label
