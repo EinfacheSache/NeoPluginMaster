@@ -137,7 +137,7 @@ func pluginMetrics(statsRequest stats) {
 	go startTimeout(statsRequest.backendID)
 }
 
-func addLabel(metrics *prometheus.CounterVec, key string, value string) {
+func addLabel(metrics *prometheus.GaugeVec, key string, value string) {
 	if value == "" {
 		return
 	}
@@ -149,7 +149,7 @@ func addLabel(metrics *prometheus.CounterVec, key string, value string) {
 	metrics.With(label).Add(1)
 }
 
-func delLabel(metrics *prometheus.CounterVec, key string, value string) {
+func delLabel(metrics *prometheus.GaugeVec, key string, value string) {
 	if value == "" {
 		return
 	}
@@ -158,7 +158,7 @@ func delLabel(metrics *prometheus.CounterVec, key string, value string) {
 		key: value,
 	}
 
-	metrics.DeletePartialMatch(label)
+	metrics.With(label).Sub(1)
 }
 
 func addServerStatsLabel(statsRequest stats) {
@@ -222,7 +222,7 @@ func startTimeout(backendID string) {
 	latestServerStats, ok2 := BackendServerStats[latestStats.backendID]
 	BackendServerStatsMutex.RUnlock()
 	if ok2 {
-		exporter.ServerStats.DeletePartialMatch(latestServerStats)
+		exporter.ServerStats.Delete(latestServerStats)
 		BackendStatsMutex.Lock()
 		delete(BackendStats, backendID)
 		BackendStatsMutex.Unlock()

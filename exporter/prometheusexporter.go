@@ -11,9 +11,9 @@ import (
 
 var PlayerAmount prometheus.Gauge
 var ServerAmount prometheus.Gauge
+var PluginVersion *prometheus.GaugeVec
+var ServerVersion *prometheus.GaugeVec
 
-var PluginVersion *prometheus.CounterVec
-var ServerVersion *prometheus.CounterVec
 var ServerStats *prometheus.CounterVec
 
 func Run() {
@@ -30,12 +30,12 @@ func Run() {
 	})
 	ServerAmount.Set(0)
 
-	PluginVersion = promauto.NewCounterVec(prometheus.CounterOpts{
+	PluginVersion = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "plugin_plugin_versions",
 		Help: "show the version of the servers",
 	}, []string{"plugin_version"})
 
-	ServerVersion = promauto.NewCounterVec(prometheus.CounterOpts{
+	ServerVersion = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "plugin_server_versions",
 		Help: "show the version of the servers",
 	}, []string{"server_version"})
