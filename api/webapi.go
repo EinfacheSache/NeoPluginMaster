@@ -111,6 +111,9 @@ func pluginMetrics(statsRequest stats) {
 		ServerCount -= 1
 		delLabel(exporter.PluginVersion, "plugin_version", latestStats.PluginVersion)
 		delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
+		delLabel(exporter.VersionStatus, "version_status", latestStats.VersionStatus)
+		delLabel(exporter.UpdateSetting, "update_setting", latestStats.UpdateSetting)
+		delLabel(exporter.NeoProtectPlan, "neoprotect_plan", latestStats.NeoProtectPlan)
 	}
 
 	BackendServerStatsMutex.RLock()
@@ -128,6 +131,9 @@ func pluginMetrics(statsRequest stats) {
 
 	addLabel(exporter.ServerVersion, "server_version", statsRequest.ServerVersion)
 	addLabel(exporter.PluginVersion, "plugin_version", statsRequest.PluginVersion)
+	addLabel(exporter.VersionStatus, "version_status", statsRequest.VersionStatus)
+	addLabel(exporter.UpdateSetting, "update_setting", statsRequest.UpdateSetting)
+	addLabel(exporter.NeoProtectPlan, "neoprotect_plan", statsRequest.NeoProtectPlan)
 	addServerStatsLabel(statsRequest)
 
 	BackendStatsMutex.Lock()
@@ -215,6 +221,9 @@ func startTimeout(backendID string) {
 
 	delLabel(exporter.PluginVersion, "plugin_version", latestStats.PluginVersion)
 	delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
+	delLabel(exporter.VersionStatus, "version_status", latestStats.VersionStatus)
+	delLabel(exporter.UpdateSetting, "update_setting", latestStats.UpdateSetting)
+	delLabel(exporter.NeoProtectPlan, "neoprotect_plan", latestStats.NeoProtectPlan)
 
 	BackendStatsMutex.Lock()
 	delete(BackendStats, backendID)

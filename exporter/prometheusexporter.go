@@ -13,6 +13,9 @@ var PlayerAmount prometheus.Gauge
 var ServerAmount prometheus.Gauge
 var PluginVersion *prometheus.GaugeVec
 var ServerVersion *prometheus.GaugeVec
+var VersionStatus *prometheus.GaugeVec
+var UpdateSetting *prometheus.GaugeVec
+var NeoProtectPlan *prometheus.GaugeVec
 
 var ServerStats *prometheus.CounterVec
 
@@ -39,6 +42,21 @@ func Run() {
 		Name: "plugin_server_versions",
 		Help: "show the version of the servers",
 	}, []string{"server_version"})
+
+	VersionStatus = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "plugin_version_status",
+		Help: "show the version status of the servers",
+	}, []string{"version_status"})
+
+	UpdateSetting = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "plugin_update_setting",
+		Help: "show the update setting of the servers",
+	}, []string{"update_setting"})
+
+	NeoProtectPlan = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "plugin_neoprotect_plan",
+		Help: "show the NeoProtect plan of the servers",
+	}, []string{"neoprotect_plan"})
 
 	ServerStats = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "server_stats",
