@@ -183,7 +183,7 @@ func addServerStatsLabel(statsRequest stats) {
 		"proxy_protocol":   strconv.FormatBool(statsRequest.ProxyProtocol),
 	}
 
-	BackendServerStatsMutex.RLock()
+	BackendServerStatsMutex.Lock()
 	BackendServerStats[statsRequest.backendID] = label
 	BackendServerStatsMutex.Unlock()
 
