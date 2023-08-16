@@ -166,8 +166,8 @@ func addLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value 
 	}
 
 	label := prometheus.Labels{
-		"server_typ": serverTyp,
-		key:          value,
+		"server_type": serverTyp,
+		key:           value,
 	}
 
 	metrics.With(label).Add(1)
@@ -179,8 +179,8 @@ func delLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value 
 	}
 
 	label := prometheus.Labels{
-		"server_typ": serverTyp,
-		key:          value,
+		"server_type": serverTyp,
+		key:           value,
 	}
 	metrics.With(label).Sub(1)
 }
