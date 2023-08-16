@@ -17,23 +17,23 @@ type stats struct {
 	serverID       string
 	backendID      string
 	latestPing     int64
-	ServerTyp      string `json:"serverTyp"`
-	ServerVersion  string `json:"serverVersion"`
-	ServerName     string `json:"serverName"`
-	JavaVersion    string `json:"javaVersion"`
-	OsName         string `json:"osName"`
-	OsArch         string `json:"osArch"`
-	OsVersion      string `json:"osVersion"`
-	PluginVersion  string `json:"pluginVersion"`
-	VersionStatus  string `json:"versionStatus"`
-	UpdateSetting  string `json:"updateSetting"`
-	NeoProtectPlan string `json:"neoProtectPlan"`
-	ServerPlugins  string `json:"serverPlugins"`
-	PlayerAmount   int32  `json:"playerAmount"`
-	ManagedServers int32  `json:"managedServers"`
-	CoreCount      int32  `json:"coreCount"`
-	OnlineMode     bool   `json:"onlineMode"`
-	ProxyProtocol  bool   `json:"proxyProtocol"`
+	ServerTyp      string  `json:"serverTyp"`
+	ServerVersion  string  `json:"serverVersion"`
+	ServerName     string  `json:"serverName"`
+	JavaVersion    string  `json:"javaVersion"`
+	OsName         string  `json:"osName"`
+	OsArch         string  `json:"osArch"`
+	OsVersion      string  `json:"osVersion"`
+	PluginVersion  string  `json:"pluginVersion"`
+	VersionStatus  string  `json:"versionStatus"`
+	UpdateSetting  string  `json:"updateSetting"`
+	NeoProtectPlan string  `json:"neoProtectPlan"`
+	ServerPlugins  string  `json:"serverPlugins"`
+	PlayerAmount   float64 `json:"playerAmount"`
+	ManagedServers float64 `json:"managedServers"`
+	CoreCount      float64 `json:"coreCount"`
+	OnlineMode     bool    `json:"onlineMode"`
+	ProxyProtocol  bool    `json:"proxyProtocol"`
 }
 
 type ResponseMessage struct {
@@ -47,8 +47,8 @@ var BackendStatsMutex = new(sync.RWMutex)
 var BackendServerStats = map[string]prometheus.Labels{}
 var BackendServerStatsMutex = new(sync.RWMutex)
 
-var ServerCount = int32(0)
-var PlayerCount = int32(0)
+var ServerCount = float64(0)
+var PlayerCount = float64(0)
 
 var limiter = rate.NewLimiter(rate.Every(1*time.Second/30), 30)
 
@@ -133,8 +133,8 @@ func pluginMetrics(statsRequest stats) {
 	PlayerCount += statsRequest.PlayerAmount
 	ServerCount += 1
 
-	exporter.PlayerAmount.Set(float64(PlayerCount))
-	exporter.ServerAmount.Set(float64(ServerCount))
+	exporter.PlayerAmount.Set(PlayerCount)
+	exporter.ServerAmount.Set(ServerCount)
 
 	addLabel(exporter.ServerVersion, "server_version", statsRequest.ServerVersion)
 	addLabel(exporter.PluginVersion, "plugin_version", statsRequest.PluginVersion)
