@@ -41,14 +41,14 @@ type ResponseMessage struct {
 	Body   string `json:"body"`
 }
 
+var AmountStats = map[string]float64{}
+var AmountStatsMutex = new(sync.RWMutex)
+
 var BackendStats = map[string]stats{}
 var BackendStatsMutex = new(sync.RWMutex)
 
 var BackendServerStats = map[string]prometheus.Labels{}
 var BackendServerStatsMutex = new(sync.RWMutex)
-
-var ServerCount = float64(0)
-var PlayerCount = float64(0)
 
 var limiter = rate.NewLimiter(rate.Every(1*time.Second/30), 30)
 
@@ -110,12 +110,22 @@ func pluginMetrics(statsRequest stats) {
 
 	statsRequest.latestPing = time.Now().UnixMilli()
 
-	BackendStatsMutex.RLock()
-	latestStats, ok := BackendStats[statsRequest.backendID]
-	BackendStatsMutex.RUnlock()
+	BackendServerStatsMutex.RLock()
+	latestServerStats, ok := BackendServerStats[statsRequest.backendID]
+	BackendServerStatsMutex.RUnlock()
 	if ok {
-		PlayerCount -= latestStats.PlayerAmount
-		ServerCount -= 1
+		exporter.ServerStats.DeletePartialMatch(latestServerStats)
+	}
+
+	BackendStatsMutex.RLock()
+	latestStats, ok2 := BackendStats[statsRequest.backendID]
+	BackendStatsMutex.RUnlock()
+	if ok2 {
+		AmountStatsMutex.Lock()
+		AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
+		AmountStats[latestStats.ServerType+"ServerCount"] -= 1
+		AmountStatsMutex.Unlock()
+
 		delLabel(exporter.PluginVersion, statsRequest.ServerType, "plugin_version", latestStats.PluginVersion)
 		delLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", latestStats.ServerVersion)
 		delLabel(exporter.VersionStatus, statsRequest.ServerType, "version_status", latestStats.VersionStatus)
@@ -123,18 +133,15 @@ func pluginMetrics(statsRequest stats) {
 		delLabel(exporter.NeoProtectPlan, statsRequest.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
 	}
 
-	BackendServerStatsMutex.RLock()
-	latestServerStats, ok2 := BackendServerStats[statsRequest.backendID]
-	BackendServerStatsMutex.RUnlock()
-	if ok2 {
-		exporter.ServerStats.DeletePartialMatch(latestServerStats)
-	}
+	AmountStatsMutex.Lock()
+	AmountStats[statsRequest.ServerType+"PlayerCount"] += statsRequest.PlayerAmount
+	AmountStats[statsRequest.ServerType+"ServerCount"] += 1
+	AmountStatsMutex.Unlock()
 
-	PlayerCount += statsRequest.PlayerAmount
-	ServerCount += 1
-
-	exporter.PlayerAmount.With(prometheus.Labels{"server_typ": statsRequest.ServerType}).Set(PlayerCount)
-	exporter.ServerAmount.With(prometheus.Labels{"server_typ": statsRequest.ServerType}).Set(ServerCount)
+	AmountStatsMutex.RLock()
+	exporter.PlayerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"PlayerCount"])
+	exporter.ServerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Add(AmountStats[statsRequest.ServerType+"ServerCount"])
+	AmountStatsMutex.RUnlock()
 
 	addLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", statsRequest.ServerVersion)
 	addLabel(exporter.PluginVersion, statsRequest.ServerType, "plugin_version", statsRequest.PluginVersion)
@@ -175,7 +182,6 @@ func delLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value 
 		"server_typ": serverTyp,
 		key:          value,
 	}
-
 	metrics.With(label).Sub(1)
 }
 
@@ -227,11 +233,15 @@ func startTimeout(backendID string) {
 		return
 	}
 
-	PlayerCount -= latestStats.PlayerAmount
-	ServerCount -= 1
+	AmountStatsMutex.Lock()
+	AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
+	AmountStats[latestStats.ServerType+"ServerCount"] -= 1
+	AmountStatsMutex.Unlock()
 
-	exporter.PlayerAmount.With(prometheus.Labels{"server_typ": latestStats.ServerType}).Set(PlayerCount)
-	exporter.ServerAmount.With(prometheus.Labels{"server_typ": latestStats.ServerType}).Set(ServerCount)
+	AmountStatsMutex.RLock()
+	exporter.PlayerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"PlayerCount"])
+	exporter.ServerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Add(AmountStats[latestStats.ServerType+"ServerCount"])
+	AmountStatsMutex.RUnlock()
 
 	delLabel(exporter.PluginVersion, latestStats.ServerType, "plugin_version", latestStats.PluginVersion)
 	delLabel(exporter.ServerVersion, latestStats.ServerType, "server_version", latestStats.ServerVersion)
