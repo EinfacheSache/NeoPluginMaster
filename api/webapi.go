@@ -124,14 +124,23 @@ func pluginMetrics(statsRequest stats) {
 		AmountStatsMutex.Lock()
 		AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
 		AmountStats[latestStats.ServerType+"ServerCount"] -= 1
-		AmountStats[statsRequest.ServerType+"ManageServer"] -= statsRequest.ManagedServer
+		AmountStats[latestStats.ServerType+"ManageServer"] -= latestStats.ManagedServer
 		AmountStatsMutex.Unlock()
 
-		delLabel(exporter.PluginVersion, statsRequest.ServerType, "plugin_version", latestStats.PluginVersion)
-		delLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", latestStats.ServerVersion)
-		delLabel(exporter.VersionStatus, statsRequest.ServerType, "version_status", latestStats.VersionStatus)
-		delLabel(exporter.UpdateSetting, statsRequest.ServerType, "update_setting", latestStats.UpdateSetting)
-		delLabel(exporter.NeoProtectPlan, statsRequest.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
+		delLabel(exporter.PluginVersion, latestStats.ServerType, "plugin_version", latestStats.PluginVersion)
+		delLabel(exporter.ServerVersion, latestStats.ServerType, "server_version", latestStats.ServerVersion)
+		delLabel(exporter.VersionStatus, latestStats.ServerType, "version_status", latestStats.VersionStatus)
+		delLabel(exporter.UpdateSetting, latestStats.ServerType, "update_setting", latestStats.UpdateSetting)
+		delLabel(exporter.NeoProtectPlan, latestStats.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
+
+		delLabel(exporter.ServerName, latestStats.ServerType, "server_name", latestStats.ServerName)
+		delLabel(exporter.JavaVersion, latestStats.ServerType, "java_version", latestStats.JavaVersion)
+		delLabel(exporter.OsName, latestStats.ServerType, "os_name", latestStats.OsName)
+		delLabel(exporter.OsArch, latestStats.ServerType, "os_arch", latestStats.OsArch)
+		delLabel(exporter.OsVersion, latestStats.ServerType, "os_version", latestStats.OsVersion)
+		delLabel(exporter.CoreCount, latestStats.ServerType, "core_count", strconv.FormatFloat(latestStats.CoreCount, 'f', 0, 64))
+		delLabel(exporter.OnlineMode, latestStats.ServerType, "online_mode", strconv.FormatBool(latestStats.OnlineMode))
+		delLabel(exporter.ProxyProtocol, latestStats.ServerType, "proxy_protocol", strconv.FormatBool(latestStats.ProxyProtocol))
 	}
 
 	AmountStatsMutex.Lock()
@@ -151,6 +160,15 @@ func pluginMetrics(statsRequest stats) {
 	addLabel(exporter.VersionStatus, statsRequest.ServerType, "version_status", statsRequest.VersionStatus)
 	addLabel(exporter.UpdateSetting, statsRequest.ServerType, "update_setting", statsRequest.UpdateSetting)
 	addLabel(exporter.NeoProtectPlan, statsRequest.ServerType, "neoprotect_plan", statsRequest.NeoProtectPlan)
+
+	addLabel(exporter.ServerName, statsRequest.ServerType, "server_name", statsRequest.ServerName)
+	addLabel(exporter.JavaVersion, statsRequest.ServerType, "java_version", statsRequest.JavaVersion)
+	addLabel(exporter.OsName, statsRequest.ServerType, "os_name", statsRequest.OsName)
+	addLabel(exporter.OsArch, statsRequest.ServerType, "os_arch", statsRequest.OsArch)
+	addLabel(exporter.OsVersion, statsRequest.ServerType, "os_version", statsRequest.OsVersion)
+	addLabel(exporter.CoreCount, statsRequest.ServerType, "core_count", strconv.FormatFloat(statsRequest.CoreCount, 'f', 0, 64))
+	addLabel(exporter.OnlineMode, statsRequest.ServerType, "online_mode", strconv.FormatBool(statsRequest.OnlineMode))
+	addLabel(exporter.ProxyProtocol, statsRequest.ServerType, "proxy_protocol", strconv.FormatBool(statsRequest.ProxyProtocol))
 
 	addServerStatsLabel(statsRequest)
 
@@ -250,6 +268,15 @@ func startTimeout(backendID string) {
 	delLabel(exporter.VersionStatus, latestStats.ServerType, "version_status", latestStats.VersionStatus)
 	delLabel(exporter.UpdateSetting, latestStats.ServerType, "update_setting", latestStats.UpdateSetting)
 	delLabel(exporter.NeoProtectPlan, latestStats.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
+
+	delLabel(exporter.ServerName, latestStats.ServerType, "server_name", latestStats.ServerName)
+	delLabel(exporter.JavaVersion, latestStats.ServerType, "java_version", latestStats.JavaVersion)
+	delLabel(exporter.OsName, latestStats.ServerType, "os_name", latestStats.OsName)
+	delLabel(exporter.OsArch, latestStats.ServerType, "os_arch", latestStats.OsArch)
+	delLabel(exporter.OsVersion, latestStats.ServerType, "os_version", latestStats.OsVersion)
+	delLabel(exporter.CoreCount, latestStats.ServerType, "core_count", strconv.FormatFloat(latestStats.CoreCount, 'f', 0, 64))
+	delLabel(exporter.OnlineMode, latestStats.ServerType, "online_mode", strconv.FormatBool(latestStats.OnlineMode))
+	delLabel(exporter.ProxyProtocol, latestStats.ServerType, "proxy_protocol", strconv.FormatBool(latestStats.ProxyProtocol))
 
 	BackendStatsMutex.Lock()
 	delete(BackendStats, backendID)
