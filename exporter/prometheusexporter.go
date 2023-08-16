@@ -63,12 +63,12 @@ func registerServerSpecificStats() {
 	ManageServer.With(prometheus.Labels{"server_type": "velocity"}).Set(0)
 
 	PluginVersion = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "plugin_plugin_versions",
+		Name: "plugin_plugin_version",
 		Help: "show the version of the plugin",
 	}, []string{"server_type", "plugin_version"})
 
 	ServerVersion = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "plugin_server_versions",
+		Name: "plugin_server_version",
 		Help: "show the version of the servers",
 	}, []string{"server_type", "server_version"})
 
