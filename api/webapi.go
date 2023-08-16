@@ -30,7 +30,7 @@ type stats struct {
 	NeoProtectPlan string  `json:"neoProtectPlan"`
 	ServerPlugins  string  `json:"serverPlugins"`
 	PlayerAmount   float64 `json:"playerAmount"`
-	ManagedServers float64 `json:"managedServers"`
+	ManagedServer  float64 `json:"managedServers"`
 	CoreCount      float64 `json:"coreCount"`
 	OnlineMode     bool    `json:"onlineMode"`
 	ProxyProtocol  bool    `json:"proxyProtocol"`
@@ -118,12 +118,13 @@ func pluginMetrics(statsRequest stats) {
 	}
 
 	BackendStatsMutex.RLock()
-	latestStats, ok2 := BackendStats[statsRequest.backendID]
+	latestStats, ok := BackendStats[statsRequest.backendID]
 	BackendStatsMutex.RUnlock()
-	if ok2 {
+	if ok {
 		AmountStatsMutex.Lock()
 		AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
 		AmountStats[latestStats.ServerType+"ServerCount"] -= 1
+		AmountStats[statsRequest.ServerType+"ManageServer"] -= statsRequest.ManagedServer
 		AmountStatsMutex.Unlock()
 
 		delLabel(exporter.PluginVersion, statsRequest.ServerType, "plugin_version", latestStats.PluginVersion)
@@ -136,11 +137,13 @@ func pluginMetrics(statsRequest stats) {
 	AmountStatsMutex.Lock()
 	AmountStats[statsRequest.ServerType+"PlayerCount"] += statsRequest.PlayerAmount
 	AmountStats[statsRequest.ServerType+"ServerCount"] += 1
+	AmountStats[statsRequest.ServerType+"ManageServer"] += statsRequest.ManagedServer
 	AmountStatsMutex.Unlock()
 
 	AmountStatsMutex.RLock()
 	exporter.PlayerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"PlayerCount"])
 	exporter.ServerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"ServerCount"])
+	exporter.ManageServer.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"ManageServer"])
 	AmountStatsMutex.RUnlock()
 
 	addLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", statsRequest.ServerVersion)
@@ -148,8 +151,6 @@ func pluginMetrics(statsRequest stats) {
 	addLabel(exporter.VersionStatus, statsRequest.ServerType, "version_status", statsRequest.VersionStatus)
 	addLabel(exporter.UpdateSetting, statsRequest.ServerType, "update_setting", statsRequest.UpdateSetting)
 	addLabel(exporter.NeoProtectPlan, statsRequest.ServerType, "neoprotect_plan", statsRequest.NeoProtectPlan)
-
-	//AddVersionSpecificStats(statsRequest.ServerType, statsRequest)
 
 	addServerStatsLabel(statsRequest)
 
@@ -203,7 +204,7 @@ func addServerStatsLabel(statsRequest stats) {
 		"neo_protect_plan": statsRequest.NeoProtectPlan,
 		"server_plugins":   statsRequest.ServerPlugins,
 		"player_amount":    fmt.Sprintf("%f", statsRequest.PlayerAmount),
-		"managed_servers":  fmt.Sprintf("%f", statsRequest.ManagedServers),
+		"managed_servers":  fmt.Sprintf("%f", statsRequest.ManagedServer),
 		"core_count":       fmt.Sprintf("%f", statsRequest.CoreCount),
 		"online_mode":      strconv.FormatBool(statsRequest.OnlineMode),
 		"proxy_protocol":   strconv.FormatBool(statsRequest.ProxyProtocol),
@@ -229,18 +230,19 @@ func startTimeout(backendID string) {
 	}
 
 	if time.Now().UnixMilli()-latestStats.latestPing < 1000*30 {
-		// Server did not timeout and send ping in latest 40 sec -> dont delete
 		return
 	}
 
 	AmountStatsMutex.Lock()
 	AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
 	AmountStats[latestStats.ServerType+"ServerCount"] -= 1
+	AmountStats[latestStats.ServerType+"ManageServer"] -= latestStats.ManagedServer
 	AmountStatsMutex.Unlock()
 
 	AmountStatsMutex.RLock()
 	exporter.PlayerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"PlayerCount"])
 	exporter.ServerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"ServerCount"])
+	exporter.ManageServer.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"ManageServer"])
 	AmountStatsMutex.RUnlock()
 
 	delLabel(exporter.PluginVersion, latestStats.ServerType, "plugin_version", latestStats.PluginVersion)
@@ -254,12 +256,15 @@ func startTimeout(backendID string) {
 	BackendStatsMutex.Unlock()
 
 	BackendServerStatsMutex.RLock()
-	latestServerStats, ok2 := BackendServerStats[latestStats.backendID]
+	latestServerStats, ok := BackendServerStats[latestStats.backendID]
 	BackendServerStatsMutex.RUnlock()
-	if ok2 {
-		exporter.ServerStats.Delete(latestServerStats)
-		BackendStatsMutex.Lock()
-		delete(BackendStats, backendID)
-		BackendStatsMutex.Unlock()
+	if !ok {
+		fmt.Printf("cant found key in map %s\n", backendID)
+		return
 	}
+
+	exporter.ServerStats.Delete(latestServerStats)
+	BackendStatsMutex.Lock()
+	delete(BackendStats, backendID)
+	BackendStatsMutex.Unlock()
 }

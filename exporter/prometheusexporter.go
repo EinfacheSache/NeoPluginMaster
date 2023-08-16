@@ -11,6 +11,7 @@ import (
 
 var PlayerAmount *prometheus.GaugeVec
 var ServerAmount *prometheus.GaugeVec
+var ManageServer *prometheus.GaugeVec
 var PluginVersion *prometheus.GaugeVec
 var ServerVersion *prometheus.GaugeVec
 var VersionStatus *prometheus.GaugeVec
@@ -45,6 +46,13 @@ func registerServerSpecificStats() {
 	ServerAmount.With(prometheus.Labels{"server_type": "bungeecord"}).Set(0)
 	ServerAmount.With(prometheus.Labels{"server_type": "velocity"}).Set(0)
 	ServerAmount.With(prometheus.Labels{"server_type": "spigot"}).Set(0)
+
+	ManageServer = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "plugin_manage_server_amount",
+		Help: "show the amount of manage server online",
+	}, []string{"server_type"})
+	ManageServer.With(prometheus.Labels{"server_type": "bungeecord"}).Set(0)
+	ManageServer.With(prometheus.Labels{"server_type": "velocity"}).Set(0)
 
 	PluginVersion = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "plugin_plugin_versions",
