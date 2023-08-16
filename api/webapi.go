@@ -140,7 +140,7 @@ func pluginMetrics(statsRequest stats) {
 
 	AmountStatsMutex.RLock()
 	exporter.PlayerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"PlayerCount"])
-	exporter.ServerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Add(AmountStats[statsRequest.ServerType+"ServerCount"])
+	exporter.ServerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"ServerCount"])
 	AmountStatsMutex.RUnlock()
 
 	addLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", statsRequest.ServerVersion)
@@ -240,7 +240,7 @@ func startTimeout(backendID string) {
 
 	AmountStatsMutex.RLock()
 	exporter.PlayerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"PlayerCount"])
-	exporter.ServerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Add(AmountStats[latestStats.ServerType+"ServerCount"])
+	exporter.ServerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"ServerCount"])
 	AmountStatsMutex.RUnlock()
 
 	delLabel(exporter.PluginVersion, latestStats.ServerType, "plugin_version", latestStats.PluginVersion)
