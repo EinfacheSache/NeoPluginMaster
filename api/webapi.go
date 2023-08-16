@@ -69,7 +69,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 	if !limiter.Allow() {
 		message := ResponseMessage{
 			Status: "Rate limit exceeded",
-			Body:   "You are being rate limitted. Please try again later.",
+			Body:   "You are being rate limited. Please try again later.",
 		}
 
 		w.WriteHeader(http.StatusTooManyRequests)
@@ -90,7 +90,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	statsRequest.serverID = r.Header.Get("gameshieldID")
-	if statsRequest.serverID != "" {
+	if statsRequest.serverID == "" {
 		//coming soon
 	}
 
@@ -116,11 +116,11 @@ func pluginMetrics(statsRequest stats) {
 	if ok {
 		PlayerCount -= latestStats.PlayerAmount
 		ServerCount -= 1
-		delLabel(exporter.PluginVersion, "plugin_version", latestStats.PluginVersion)
-		delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
-		delLabel(exporter.VersionStatus, "version_status", latestStats.VersionStatus)
-		delLabel(exporter.UpdateSetting, "update_setting", latestStats.UpdateSetting)
-		delLabel(exporter.NeoProtectPlan, "neoprotect_plan", latestStats.NeoProtectPlan)
+		delLabel(exporter.PluginVersion, statsRequest.ServerType, "plugin_version", latestStats.PluginVersion)
+		delLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", latestStats.ServerVersion)
+		delLabel(exporter.VersionStatus, statsRequest.ServerType, "version_status", latestStats.VersionStatus)
+		delLabel(exporter.UpdateSetting, statsRequest.ServerType, "update_setting", latestStats.UpdateSetting)
+		delLabel(exporter.NeoProtectPlan, statsRequest.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
 	}
 
 	BackendServerStatsMutex.RLock()
@@ -133,14 +133,17 @@ func pluginMetrics(statsRequest stats) {
 	PlayerCount += statsRequest.PlayerAmount
 	ServerCount += 1
 
-	exporter.PlayerAmount.Set(PlayerCount)
-	exporter.ServerAmount.Set(ServerCount)
+	exporter.PlayerAmount.With(prometheus.Labels{"server_typ": statsRequest.ServerType}).Set(PlayerCount)
+	exporter.ServerAmount.With(prometheus.Labels{"server_typ": statsRequest.ServerType}).Set(ServerCount)
 
-	addLabel(exporter.ServerVersion, "server_version", statsRequest.ServerVersion)
-	addLabel(exporter.PluginVersion, "plugin_version", statsRequest.PluginVersion)
-	addLabel(exporter.VersionStatus, "version_status", statsRequest.VersionStatus)
-	addLabel(exporter.UpdateSetting, "update_setting", statsRequest.UpdateSetting)
-	addLabel(exporter.NeoProtectPlan, "neoprotect_plan", statsRequest.NeoProtectPlan)
+	addLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", statsRequest.ServerVersion)
+	addLabel(exporter.PluginVersion, statsRequest.ServerType, "plugin_version", statsRequest.PluginVersion)
+	addLabel(exporter.VersionStatus, statsRequest.ServerType, "version_status", statsRequest.VersionStatus)
+	addLabel(exporter.UpdateSetting, statsRequest.ServerType, "update_setting", statsRequest.UpdateSetting)
+	addLabel(exporter.NeoProtectPlan, statsRequest.ServerType, "neoprotect_plan", statsRequest.NeoProtectPlan)
+
+	//AddVersionSpecificStats(statsRequest.ServerType, statsRequest)
+
 	addServerStatsLabel(statsRequest)
 
 	BackendStatsMutex.Lock()
@@ -150,25 +153,27 @@ func pluginMetrics(statsRequest stats) {
 	go startTimeout(statsRequest.backendID)
 }
 
-func addLabel(metrics *prometheus.GaugeVec, key string, value string) {
+func addLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value string) {
 	if value == "" {
 		return
 	}
 
 	label := prometheus.Labels{
-		key: value,
+		"server_typ": serverTyp,
+		key:          value,
 	}
 
 	metrics.With(label).Add(1)
 }
 
-func delLabel(metrics *prometheus.GaugeVec, key string, value string) {
+func delLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value string) {
 	if value == "" {
 		return
 	}
 
 	label := prometheus.Labels{
-		key: value,
+		"server_typ": serverTyp,
+		key:          value,
 	}
 
 	metrics.With(label).Sub(1)
@@ -225,14 +230,14 @@ func startTimeout(backendID string) {
 	PlayerCount -= latestStats.PlayerAmount
 	ServerCount -= 1
 
-	exporter.PlayerAmount.Set(PlayerCount)
-	exporter.ServerAmount.Set(ServerCount)
+	exporter.PlayerAmount.With(prometheus.Labels{"server_typ": latestStats.ServerType}).Set(PlayerCount)
+	exporter.ServerAmount.With(prometheus.Labels{"server_typ": latestStats.ServerType}).Set(ServerCount)
 
-	delLabel(exporter.PluginVersion, "plugin_version", latestStats.PluginVersion)
-	delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
-	delLabel(exporter.VersionStatus, "version_status", latestStats.VersionStatus)
-	delLabel(exporter.UpdateSetting, "update_setting", latestStats.UpdateSetting)
-	delLabel(exporter.NeoProtectPlan, "neoprotect_plan", latestStats.NeoProtectPlan)
+	delLabel(exporter.PluginVersion, latestStats.ServerType, "plugin_version", latestStats.PluginVersion)
+	delLabel(exporter.ServerVersion, latestStats.ServerType, "server_version", latestStats.ServerVersion)
+	delLabel(exporter.VersionStatus, latestStats.ServerType, "version_status", latestStats.VersionStatus)
+	delLabel(exporter.UpdateSetting, latestStats.ServerType, "update_setting", latestStats.UpdateSetting)
+	delLabel(exporter.NeoProtectPlan, latestStats.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
 
 	BackendStatsMutex.Lock()
 	delete(BackendStats, backendID)
