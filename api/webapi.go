@@ -14,8 +14,10 @@ import (
 )
 
 type stats struct {
+	serverID       string
 	backendID      string
 	latestPing     int64
+	ServerTyp      string `json:"serverTyp"`
 	ServerVersion  string `json:"serverVersion"`
 	ServerName     string `json:"serverName"`
 	JavaVersion    string `json:"javaVersion"`
@@ -85,6 +87,11 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Println("request failed: backendID not provided")
 		return
+	}
+
+	statsRequest.serverID = r.Header.Get("gameshieldID")
+	if statsRequest.serverID != "" {
+		//coming soon
 	}
 
 	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
@@ -169,8 +176,10 @@ func delLabel(metrics *prometheus.GaugeVec, key string, value string) {
 
 func addServerStatsLabel(statsRequest stats) {
 	label := prometheus.Labels{
+		"serverID":  statsRequest.serverID,
 		"backendID": statsRequest.backendID,
 
+		"server_typ":       statsRequest.ServerTyp,
 		"server_version":   statsRequest.ServerVersion,
 		"server_name":      statsRequest.ServerName,
 		"java_version":     statsRequest.JavaVersion,
