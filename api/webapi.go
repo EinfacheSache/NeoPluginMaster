@@ -17,7 +17,7 @@ type stats struct {
 	serverID       string
 	backendID      string
 	latestPing     int64
-	ServerTyp      string  `json:"serverTyp"`
+	ServerType     string  `json:"serverType"`
 	ServerVersion  string  `json:"serverVersion"`
 	ServerName     string  `json:"serverName"`
 	JavaVersion    string  `json:"javaVersion"`
@@ -179,7 +179,7 @@ func addServerStatsLabel(statsRequest stats) {
 		"serverID":  statsRequest.serverID,
 		"backendID": statsRequest.backendID,
 
-		"server_typ":       statsRequest.ServerTyp,
+		"server_type":      statsRequest.ServerType,
 		"server_version":   statsRequest.ServerVersion,
 		"server_name":      statsRequest.ServerName,
 		"java_version":     statsRequest.JavaVersion,
@@ -225,8 +225,8 @@ func startTimeout(backendID string) {
 	PlayerCount -= latestStats.PlayerAmount
 	ServerCount -= 1
 
-	exporter.PlayerAmount.Set(float64(PlayerCount))
-	exporter.ServerAmount.Set(float64(ServerCount))
+	exporter.PlayerAmount.Set(PlayerCount)
+	exporter.ServerAmount.Set(ServerCount)
 
 	delLabel(exporter.PluginVersion, "plugin_version", latestStats.PluginVersion)
 	delLabel(exporter.ServerVersion, "server_version", latestStats.ServerVersion)
