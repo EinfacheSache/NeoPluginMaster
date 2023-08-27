@@ -14,6 +14,7 @@ import (
 )
 
 type stats struct {
+	identifier     string
 	serverID       string
 	backendID      string
 	latestPing     int64
@@ -94,6 +95,11 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 		//coming soon
 	}
 
+	statsRequest.identifier = r.Header.Get("identifier")
+	if statsRequest.identifier == "" {
+		//coming soon
+	}
+
 	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err2 != nil {
 		http.Error(w, err2.Error(), http.StatusBadRequest)
@@ -106,19 +112,19 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pluginMetrics(statsRequest stats) {
-	fmt.Println("ID (", statsRequest.backendID, ")", " PlayerCount(", statsRequest.PlayerAmount, ")")
+	fmt.Println("ID (", statsRequest.backendID+":"+statsRequest.identifier, ")", " PlayerCount(", statsRequest.PlayerAmount, ")")
 
 	statsRequest.latestPing = time.Now().UnixMilli()
 
 	BackendServerStatsMutex.RLock()
-	latestServerStats, ok := BackendServerStats[statsRequest.backendID]
+	latestServerStats, ok := BackendServerStats[statsRequest.backendID+statsRequest.identifier]
 	BackendServerStatsMutex.RUnlock()
 	if ok {
 		exporter.ServerStats.DeletePartialMatch(latestServerStats)
 	}
 
 	BackendStatsMutex.RLock()
-	latestStats, ok := BackendStats[statsRequest.backendID]
+	latestStats, ok := BackendStats[statsRequest.backendID+statsRequest.identifier]
 	BackendStatsMutex.RUnlock()
 	if ok {
 		AmountStatsMutex.Lock()
@@ -173,10 +179,10 @@ func pluginMetrics(statsRequest stats) {
 	addServerStatsLabel(statsRequest)
 
 	BackendStatsMutex.Lock()
-	BackendStats[statsRequest.backendID] = statsRequest
+	BackendStats[statsRequest.backendID+statsRequest.identifier] = statsRequest
 	BackendStatsMutex.Unlock()
 
-	go startTimeout(statsRequest.backendID)
+	go startTimeout(statsRequest.backendID, statsRequest.identifier)
 }
 
 func addLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value string) {
@@ -206,8 +212,9 @@ func delLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value 
 
 func addServerStatsLabel(statsRequest stats) {
 	label := prometheus.Labels{
-		"serverID":  statsRequest.serverID,
-		"backendID": statsRequest.backendID,
+		"identifier": statsRequest.identifier,
+		"serverID":   statsRequest.serverID,
+		"backendID":  statsRequest.backendID,
 
 		"server_type":      statsRequest.ServerType,
 		"server_version":   statsRequest.ServerVersion,
@@ -229,25 +236,25 @@ func addServerStatsLabel(statsRequest stats) {
 	}
 
 	BackendServerStatsMutex.Lock()
-	BackendServerStats[statsRequest.backendID] = label
+	BackendServerStats[statsRequest.backendID+statsRequest.identifier] = label
 	BackendServerStatsMutex.Unlock()
 
 	exporter.ServerStats.With(label).Inc()
 }
 
-func startTimeout(backendID string) {
+func startTimeout(backendID string, identifier string) {
 
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 15)
 
 	BackendStatsMutex.RLock()
-	latestStats, ok := BackendStats[backendID]
+	latestStats, ok := BackendStats[backendID+identifier]
 	BackendStatsMutex.RUnlock()
 	if !ok {
-		fmt.Printf("cant found key in map %s\n", backendID)
+		fmt.Printf("cant found key in map %s\n", backendID+":"+identifier)
 		return
 	}
 
-	if time.Now().UnixMilli()-latestStats.latestPing < 1000*30 {
+	if time.Now().UnixMilli()-latestStats.latestPing < 1000*15 {
 		return
 	}
 
@@ -279,19 +286,19 @@ func startTimeout(backendID string) {
 	delLabel(exporter.ProxyProtocol, latestStats.ServerType, "proxy_protocol", strconv.FormatBool(latestStats.ProxyProtocol))
 
 	BackendStatsMutex.Lock()
-	delete(BackendStats, backendID)
+	delete(BackendStats, backendID+identifier)
 	BackendStatsMutex.Unlock()
 
 	BackendServerStatsMutex.RLock()
-	latestServerStats, ok := BackendServerStats[latestStats.backendID]
+	latestServerStats, ok := BackendServerStats[latestStats.backendID+latestStats.identifier]
 	BackendServerStatsMutex.RUnlock()
 	if !ok {
-		fmt.Printf("cant found key in map %s\n", backendID)
+		fmt.Printf("cant found key in map %s\n", backendID+":"+identifier)
 		return
 	}
 
 	exporter.ServerStats.Delete(latestServerStats)
 	BackendStatsMutex.Lock()
-	delete(BackendStats, backendID)
+	delete(BackendStats, backendID+identifier)
 	BackendStatsMutex.Unlock()
 }
