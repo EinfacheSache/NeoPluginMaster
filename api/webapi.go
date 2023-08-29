@@ -27,6 +27,7 @@ type stats struct {
 	OsVersion      string  `json:"osVersion"`
 	PluginVersion  string  `json:"pluginVersion"`
 	VersionStatus  string  `json:"versionStatus"`
+	VersionError   string  `json:"versionError"`
 	UpdateSetting  string  `json:"updateSetting"`
 	NeoProtectPlan string  `json:"neoProtectPlan"`
 	ServerPlugins  string  `json:"serverPlugins"`
@@ -136,6 +137,7 @@ func pluginMetrics(statsRequest stats) {
 		delLabel(exporter.PluginVersion, latestStats.ServerType, "plugin_version", latestStats.PluginVersion)
 		delLabel(exporter.ServerVersion, latestStats.ServerType, "server_version", latestStats.ServerVersion)
 		delLabel(exporter.VersionStatus, latestStats.ServerType, "version_status", latestStats.VersionStatus)
+		delLabel(exporter.VersionError, latestStats.ServerType, "version_error", latestStats.VersionError)
 		delLabel(exporter.UpdateSetting, latestStats.ServerType, "update_setting", latestStats.UpdateSetting)
 		delLabel(exporter.NeoProtectPlan, latestStats.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
 
@@ -164,6 +166,7 @@ func pluginMetrics(statsRequest stats) {
 	addLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", statsRequest.ServerVersion)
 	addLabel(exporter.PluginVersion, statsRequest.ServerType, "plugin_version", statsRequest.PluginVersion)
 	addLabel(exporter.VersionStatus, statsRequest.ServerType, "version_status", statsRequest.VersionStatus)
+	addLabel(exporter.VersionError, statsRequest.ServerType, "version_error", statsRequest.VersionError)
 	addLabel(exporter.UpdateSetting, statsRequest.ServerType, "update_setting", statsRequest.UpdateSetting)
 	addLabel(exporter.NeoProtectPlan, statsRequest.ServerType, "neoprotect_plan", statsRequest.NeoProtectPlan)
 
@@ -225,6 +228,7 @@ func addServerStatsLabel(statsRequest stats) {
 		"os_version":       statsRequest.OsVersion,
 		"plugin_version":   statsRequest.PluginVersion,
 		"version_status":   statsRequest.VersionStatus,
+		"version_error":    statsRequest.VersionError,
 		"update_setting":   statsRequest.UpdateSetting,
 		"neo_protect_plan": statsRequest.NeoProtectPlan,
 		"server_plugins":   statsRequest.ServerPlugins,
@@ -273,6 +277,7 @@ func startTimeout(backendID string, identifier string) {
 	delLabel(exporter.PluginVersion, latestStats.ServerType, "plugin_version", latestStats.PluginVersion)
 	delLabel(exporter.ServerVersion, latestStats.ServerType, "server_version", latestStats.ServerVersion)
 	delLabel(exporter.VersionStatus, latestStats.ServerType, "version_status", latestStats.VersionStatus)
+	delLabel(exporter.VersionError, latestStats.ServerType, "version_error", latestStats.VersionError)
 	delLabel(exporter.UpdateSetting, latestStats.ServerType, "update_setting", latestStats.UpdateSetting)
 	delLabel(exporter.NeoProtectPlan, latestStats.ServerType, "neoprotect_plan", latestStats.NeoProtectPlan)
 

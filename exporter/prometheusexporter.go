@@ -16,6 +16,7 @@ var PluginVersion *prometheus.GaugeVec
 var ServerVersion *prometheus.GaugeVec
 var ServerName *prometheus.GaugeVec
 var VersionStatus *prometheus.GaugeVec
+var VersionError *prometheus.GaugeVec
 var UpdateSetting *prometheus.GaugeVec
 var NeoProtectPlan *prometheus.GaugeVec
 var JavaVersion *prometheus.GaugeVec
@@ -82,6 +83,11 @@ func registerServerSpecificStats() {
 		Help: "show the version status of the servers",
 	}, []string{"server_type", "version_status"})
 
+	VersionError = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "plugin_version_error",
+		Help: "show the version errors of the servers",
+	}, []string{"server_type", "version_error"})
+
 	UpdateSetting = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "plugin_update_setting",
 		Help: "show the update setting of the servers",
@@ -130,6 +136,6 @@ func registerServerSpecificStats() {
 	ServerStats = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "server_stats",
 		Help: "show the server stats of the servers",
-	}, []string{"identifier", "serverID", "backendID", "server_type", "server_version", "server_name", "java_version", "os_name", "os_arch", "os_version", "plugin_version", "version_status", "update_setting", "neo_protect_plan", "server_plugins", "player_amount", "managed_servers", "core_count", "online_mode", "proxy_protocol"})
+	}, []string{"identifier", "serverID", "backendID", "server_type", "server_version", "server_name", "java_version", "os_name", "os_arch", "os_version", "plugin_version", "version_status", "version_error", "update_setting", "neo_protect_plan", "server_plugins", "player_amount", "managed_servers", "core_count", "online_mode", "proxy_protocol"})
 
 }
