@@ -16,7 +16,7 @@ func main() {
 func reader() {
 	for {
 		api.AmountStatsMutex.RLock()
-		fmt.Println("PlayerCount ", api.AmountStats["PlayerCount"]+api.AmountStats["bungeecordPlayerCount"]+api.AmountStats["velocityPlayerCount"]+api.AmountStats["spigotPlayerCount"], "(Bungee ", api.AmountStats["bungeecordPlayerCount"], ", Velocity ", api.AmountStats["velocityPlayerCount"], ", Spigot ", api.AmountStats["spigotPlayerCount"], ", Rest ", api.AmountStats["PlayerCount"], ")")
+		fmt.Println("PlayerCount ", api.AmountStats["PlayerCount"]+api.AmountStats["bungeecordPlayerCount"]+api.AmountStats["velocityPlayerCount"]+api.AmountStats["spigotPlayerCount"], "[Bungee(", api.AmountStats["bungeecordPlayerCount"], ") Velocity(", api.AmountStats["velocityPlayerCount"], ") Spigot(", api.AmountStats["spigotPlayerCount"], ") Rest(", api.AmountStats["PlayerCount"], "]")
 		api.AmountStatsMutex.RUnlock()
 		time.Sleep(time.Second * 5)
 	}
