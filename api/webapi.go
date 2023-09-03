@@ -254,14 +254,14 @@ func startTimeout(backendID string, identifier string) {
 	latestStats, ok := BackendStats[backendID+identifier]
 	BackendStatsMutex.RUnlock()
 	if !ok {
-		fmt.Printf("cant found key in map %s\n", backendID+":"+identifier)
+		fmt.Println("cant found key in map (", backendID+":"+identifier, ")")
 		return
 	}
 
 	if time.Now().UnixMilli()-latestStats.latestPing < 1000*15 {
 		return
 	} else {
-		fmt.Printf("The server has timed out ( %s ) PlayerCount( %f )\n", backendID+":"+identifier, latestStats.PlayerAmount)
+		fmt.Println("The server has timed out (", backendID+":"+identifier, ") PlayerCount(", latestStats.PlayerAmount, ")")
 	}
 
 	AmountStatsMutex.Lock()
@@ -300,7 +300,7 @@ func startTimeout(backendID string, identifier string) {
 	latestServerStats, ok := BackendServerStats[backendID+identifier]
 	BackendServerStatsMutex.RUnlock()
 	if !ok {
-		fmt.Printf("cant found key in map %s\n", backendID+":"+identifier)
+		fmt.Println("cant found key in map (", backendID+":"+identifier, ")")
 		return
 	}
 
