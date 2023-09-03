@@ -260,6 +260,8 @@ func startTimeout(backendID string, identifier string) {
 
 	if time.Now().UnixMilli()-latestStats.latestPing <= 1000*15 {
 		return
+	} else {
+		fmt.Printf("The server has timed out ( %s ) PlayerCount( %f )\n", backendID+":"+identifier, latestStats.PlayerAmount)
 	}
 
 	AmountStatsMutex.Lock()
