@@ -124,9 +124,11 @@ func pluginMetrics(statsRequest stats) {
 		exporter.ServerStats.DeletePartialMatch(latestServerStats)
 	}
 
-	BackendStatsMutex.RLock()
+	BackendStatsMutex.Lock()
 	latestStats, ok := BackendStats[statsRequest.backendID+statsRequest.identifier]
-	BackendStatsMutex.RUnlock()
+	BackendStats[statsRequest.backendID+statsRequest.identifier] = statsRequest
+	BackendStatsMutex.Unlock()
+
 	if ok {
 		AmountStatsMutex.Lock()
 		AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
@@ -180,10 +182,6 @@ func pluginMetrics(statsRequest stats) {
 	addLabel(exporter.ProxyProtocol, statsRequest.ServerType, "proxy_protocol", strconv.FormatBool(statsRequest.ProxyProtocol))
 
 	addServerStatsLabel(statsRequest)
-
-	BackendStatsMutex.Lock()
-	BackendStats[statsRequest.backendID+statsRequest.identifier] = statsRequest
-	BackendStatsMutex.Unlock()
 
 	go startTimeout(statsRequest.backendID, statsRequest.identifier)
 }
