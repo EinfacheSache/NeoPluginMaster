@@ -258,7 +258,7 @@ func startTimeout(backendID string, identifier string) {
 		return
 	}
 
-	if time.Now().UnixMilli()-latestStats.latestPing < 1000*15 {
+	if time.Now().UnixMilli()-latestStats.latestPing <= 1000*15 {
 		return
 	}
 
@@ -295,7 +295,7 @@ func startTimeout(backendID string, identifier string) {
 	BackendStatsMutex.Unlock()
 
 	BackendServerStatsMutex.RLock()
-	latestServerStats, ok := BackendServerStats[latestStats.backendID+latestStats.identifier]
+	latestServerStats, ok := BackendServerStats[backendID+identifier]
 	BackendServerStatsMutex.RUnlock()
 	if !ok {
 		fmt.Printf("cant found key in map %s\n", backendID+":"+identifier)
