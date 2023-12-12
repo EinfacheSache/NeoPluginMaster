@@ -303,7 +303,7 @@ func startTimeout(backendID string, identifier string) {
 	}
 
 	exporter.ServerStats.Delete(latestServerStats)
-	BackendStatsMutex.Lock()
-	delete(BackendStats, backendID+identifier)
-	BackendStatsMutex.Unlock()
+	BackendServerStatsMutex.Lock()
+	delete(BackendServerStats, backendID+identifier)
+	BackendServerStatsMutex.Unlock()
 }
