@@ -10,7 +10,7 @@ import (
 func main() {
 	go exporter.Run()
 	go api.Run()
-	go writer()
+	writer()
 }
 
 func writer() {
