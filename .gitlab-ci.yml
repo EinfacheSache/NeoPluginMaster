@@ -17,4 +17,3 @@ deploy_container:
     - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --push .
   only:
     - main
-    
