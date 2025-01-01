@@ -84,21 +84,12 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var statsRequest stats
-	statsRequest.backendID = r.Header.Get("backendID")
-	if statsRequest.backendID == "" {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Println("request failed: backendID not provided")
-		return
-	}
-
-	statsRequest.serverID = r.Header.Get("gameshieldID")
-	if statsRequest.serverID == "" {
-		//coming soon
-	}
 
 	statsRequest.identifier = r.Header.Get("identifier")
 	if statsRequest.identifier == "" {
-		//coming soon
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Println("request failed: identifier not provided")
+		return
 	}
 
 	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
