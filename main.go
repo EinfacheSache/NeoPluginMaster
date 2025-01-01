@@ -14,6 +14,7 @@ func main() {
 }
 
 func writer() {
+	time.Sleep(time.Millisecond * 500)
 	for {
 		api.AmountStatsMutex.RLock()
 		fmt.Println("PlayerCount ", api.AmountStats["PlayerCount"]+api.AmountStats["bungeecordPlayerCount"]+api.AmountStats["velocityPlayerCount"]+api.AmountStats["spigotPlayerCount"], "[ Bungee(", api.AmountStats["bungeecordPlayerCount"], ") Velocity(", api.AmountStats["velocityPlayerCount"], ") Spigot(", api.AmountStats["spigotPlayerCount"], ") Rest(", api.AmountStats["PlayerCount"], ") ]")
