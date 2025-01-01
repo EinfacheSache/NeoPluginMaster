@@ -104,7 +104,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pluginMetrics(statsRequest stats) {
-	fmt.Println("ID (", statsRequest.backendID+":"+statsRequest.identifier, ")", " PlayerCount(", statsRequest.PlayerAmount, ")", "VersionStatus(", statsRequest.VersionStatus, ")")
+	fmt.Println("ID (", statsRequest.identifier, ")", " PlayerCount(", statsRequest.PlayerAmount, ")", "ServerType(", statsRequest.ServerType, ")")
 
 	statsRequest.latestPing = time.Now().UnixMilli()
 
