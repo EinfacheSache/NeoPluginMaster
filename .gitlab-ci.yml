@@ -6,9 +6,28 @@ deploy_container:
   image: docker:23
   services:
     - docker:dind
+  variables:
+    DOCKER_BUILDKIT: 1
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
+    # Aktivieren von Buildx für plattformübergreifende Builds
+    - docker buildx create --use
+    # Builden und Pushen des Images für ARM64
+    - docker buildx build --platform linux/arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --push .
   only:
     - main
+
+# stages:
+#   - deploy
+
+# deploy_container:
+#   stage: deploy
+#   image: docker:23
+#   services:
+#     - docker:dind
+#   script:
+#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+#     - docker build --build-arg ARCH=arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH .
+#     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
+#   only:
+#     - main
