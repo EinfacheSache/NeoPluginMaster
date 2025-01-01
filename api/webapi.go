@@ -109,15 +109,15 @@ func pluginMetrics(statsRequest stats) {
 	statsRequest.latestPing = time.Now().UnixMilli()
 
 	BackendServerStatsMutex.RLock()
-	latestServerStats, ok := BackendServerStats[statsRequest.backendID+statsRequest.identifier]
+	latestServerStats, ok := BackendServerStats[statsRequest.identifier]
 	BackendServerStatsMutex.RUnlock()
 	if ok {
 		exporter.ServerStats.DeletePartialMatch(latestServerStats)
 	}
 
 	BackendStatsMutex.Lock()
-	latestStats, ok := BackendStats[statsRequest.backendID+statsRequest.identifier]
-	BackendStats[statsRequest.backendID+statsRequest.identifier] = statsRequest
+	latestStats, ok := BackendStats[statsRequest.identifier]
+	BackendStats[statsRequest.identifier] = statsRequest
 	BackendStatsMutex.Unlock()
 
 	if ok {
@@ -174,7 +174,7 @@ func pluginMetrics(statsRequest stats) {
 
 	addServerStatsLabel(statsRequest)
 
-	go startTimeout(statsRequest.backendID, statsRequest.identifier)
+	go startTimeout(statsRequest.identifier)
 }
 
 func addLabel(metrics *prometheus.GaugeVec, serverTyp string, key string, value string) {
@@ -229,28 +229,28 @@ func addServerStatsLabel(statsRequest stats) {
 	}
 
 	BackendServerStatsMutex.Lock()
-	BackendServerStats[statsRequest.backendID+statsRequest.identifier] = label
+	BackendServerStats[statsRequest.identifier] = label
 	BackendServerStatsMutex.Unlock()
 
 	exporter.ServerStats.With(label).Inc()
 }
 
-func startTimeout(backendID string, identifier string) {
+func startTimeout(identifier string) {
 
 	time.Sleep(time.Second * 15)
 
 	BackendStatsMutex.RLock()
-	latestStats, ok := BackendStats[backendID+identifier]
+	latestStats, ok := BackendStats[identifier]
 	BackendStatsMutex.RUnlock()
 	if !ok {
-		fmt.Println("cant found key in map (", backendID+":"+identifier, ")")
+		fmt.Println("cant found key in map (", identifier, ")")
 		return
 	}
 
 	if time.Now().UnixMilli()-latestStats.latestPing < 1000*15 {
 		return
 	} else {
-		fmt.Println("The server has timed out (", backendID+":"+identifier, ") PlayerCount(", latestStats.PlayerAmount, ")")
+		fmt.Println("The server has timed out (", identifier, ") PlayerCount(", latestStats.PlayerAmount, ")")
 	}
 
 	AmountStatsMutex.Lock()
@@ -282,19 +282,19 @@ func startTimeout(backendID string, identifier string) {
 	delLabel(exporter.ProxyProtocol, latestStats.ServerType, "proxy_protocol", strconv.FormatBool(latestStats.ProxyProtocol))
 
 	BackendStatsMutex.Lock()
-	delete(BackendStats, backendID+identifier)
+	delete(BackendStats, identifier)
 	BackendStatsMutex.Unlock()
 
 	BackendServerStatsMutex.RLock()
-	latestServerStats, ok := BackendServerStats[backendID+identifier]
+	latestServerStats, ok := BackendServerStats[identifier]
 	BackendServerStatsMutex.RUnlock()
 	if !ok {
-		fmt.Println("cant found key in map (", backendID+":"+identifier, ")")
+		fmt.Println("cant found key in map (", identifier, ")")
 		return
 	}
 
 	exporter.ServerStats.Delete(latestServerStats)
 	BackendServerStatsMutex.Lock()
-	delete(BackendServerStats, backendID+identifier)
+	delete(BackendServerStats, identifier)
 	BackendServerStatsMutex.Unlock()
 }
