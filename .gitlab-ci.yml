@@ -9,11 +9,12 @@ deploy_container:
   variables:
     DOCKER_BUILDKIT: 1
   script:
+    # Anmelden in der Registry
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    # Aktivieren von Buildx für plattformübergreifende Builds
+    # Buildx aktivieren
     - docker buildx create --use
-    # Builden und Pushen des Images für ARM64
-    - docker buildx build --platform linux/arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --push .
+    # Multi-Architektur-Image für ARM64 und AMD64 bauen und pushen
+    - docker buildx build --platform linux/amd64,linux/arm64 -t $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH --push .
   only:
     - main
 
