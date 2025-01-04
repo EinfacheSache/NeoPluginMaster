@@ -62,12 +62,6 @@ func Run() {
 
 func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 
-	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		fmt.Println("\033[31mMethod not allowed\033[0m")
-		return
-	}
-
 	if !limiter.Allow() {
 		message := ResponseMessage{
 			Status: "Rate limit exceeded",
@@ -92,15 +86,47 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
-	if err2 != nil {
-		http.Error(w, err2.Error(), http.StatusBadRequest)
-		fmt.Println("\033[31mrequest failed: formatted error\033[0m")
+	if r.Method == http.MethodPost {
+
+		err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
+		if err2 != nil {
+			http.Error(w, err2.Error(), http.StatusBadRequest)
+			fmt.Println("\033[31mrequest failed: formatted error\033[0m")
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+
+		pluginMetrics(statsRequest)
+
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 
-	pluginMetrics(statsRequest)
+	if r.Method == http.MethodDelete {
+
+		BackendStatsMutex.Lock()
+		latestStats, ok := BackendStats[statsRequest.identifier]
+		if !ok {
+			BackendStatsMutex.Unlock()
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.WriteHeader(http.StatusFound)
+
+		fmt.Println("\033[33mThe server went down (", statsRequest.identifier, ")\033[0m")
+		delete(BackendStats, statsRequest.identifier)
+
+		BackendStatsMutex.Unlock()
+
+		setOffline(latestStats, statsRequest.identifier)
+
+		return
+	}
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	fmt.Println("\033[31mMethod not allowed\033[0m")
+	return
 }
 
 func pluginMetrics(statsRequest stats) {
@@ -254,6 +280,11 @@ func startTimeout(identifier string) {
 	}
 	BackendStatsMutex.Unlock()
 
+	setOffline(latestStats, identifier)
+}
+
+func setOffline(latestStats stats, identifier string) {
+
 	AmountStatsMutex.Lock()
 	AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
 	AmountStats[latestStats.ServerType+"ServerCount"] -= 1
@@ -283,7 +314,7 @@ func startTimeout(identifier string) {
 	delLabel(exporter.ProxyProtocol, latestStats.ServerType, "proxy_protocol", strconv.FormatBool(latestStats.ProxyProtocol))
 
 	BackendServerStatsMutex.Lock()
-	latestServerStats, ok := BackendServerStats[identifier]
+	latestServerStats := BackendServerStats[identifier]
 	delete(BackendServerStats, identifier)
 	BackendServerStatsMutex.Unlock()
 
