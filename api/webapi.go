@@ -64,7 +64,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		fmt.Println("\033[31mMethod not allowed")
+		fmt.Println("\033[31mMethod not allowed\033[0m")
 		return
 	}
 
@@ -79,7 +79,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		fmt.Println("\033[31mrate limit exceeded")
+		fmt.Println("\033[31mrate limit exceeded\033[0m")
 		return
 	}
 
@@ -88,14 +88,14 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 	statsRequest.identifier = r.Header.Get("identifier")
 	if statsRequest.identifier == "" {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Println("\033[31mrequest failed: identifier not provided")
+		fmt.Println("\033[31mrequest failed: identifier not provided\033[0m")
 		return
 	}
 
 	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err2 != nil {
 		http.Error(w, err2.Error(), http.StatusBadRequest)
-		fmt.Println("\033[31mrequest failed: formatted error")
+		fmt.Println("\033[31mrequest failed: formatted error\033[0m")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -111,6 +111,7 @@ func pluginMetrics(statsRequest stats) {
 	BackendServerStatsMutex.RLock()
 	latestServerStats, ok := BackendServerStats[statsRequest.identifier]
 	BackendServerStatsMutex.RUnlock()
+
 	if ok {
 		exporter.ServerStats.DeletePartialMatch(latestServerStats)
 	}
@@ -237,21 +238,18 @@ func addServerStatsLabel(statsRequest stats) {
 
 func startTimeout(identifier string) {
 
-	time.Sleep(time.Second * 15)
+	time.Sleep(time.Second * 10)
 
-	BackendStatsMutex.RLock()
+	BackendStatsMutex.Lock()
 	latestStats, ok := BackendStats[identifier]
-	BackendStatsMutex.RUnlock()
-	if !ok {
-		fmt.Println("\033[31mcan not found server with identifier (", identifier, ") in backend stats")
-		return
-	}
-
-	if time.Now().UnixMilli()-latestStats.latestPing < 1000*15 {
+	if time.Now().UnixMilli()-latestStats.latestPing < 1000*10 || !ok {
+		BackendStatsMutex.Unlock()
 		return
 	} else {
-		fmt.Println("\033[33mThe server has timed out (", identifier, ") PlayerCount(", latestStats.PlayerAmount, ")")
+		fmt.Println("\033[33mThe server has timed out (", identifier, ") PlayerCount(", latestStats.PlayerAmount, ")\033[0m")
+		delete(BackendStats, identifier)
 	}
+	BackendStatsMutex.Unlock()
 
 	AmountStatsMutex.Lock()
 	AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
@@ -281,20 +279,10 @@ func startTimeout(identifier string) {
 	delLabel(exporter.OnlineMode, latestStats.ServerType, "online_mode", strconv.FormatBool(latestStats.OnlineMode))
 	delLabel(exporter.ProxyProtocol, latestStats.ServerType, "proxy_protocol", strconv.FormatBool(latestStats.ProxyProtocol))
 
-	BackendStatsMutex.Lock()
-	delete(BackendStats, identifier)
-	BackendStatsMutex.Unlock()
-
-	BackendServerStatsMutex.RLock()
-	latestServerStats, ok := BackendServerStats[identifier]
-	BackendServerStatsMutex.RUnlock()
-	if !ok {
-		fmt.Println("\033[31mcan not found server with identifier (", identifier, ") in backend stats")
-		return
-	}
-
-	exporter.ServerStats.Delete(latestServerStats)
 	BackendServerStatsMutex.Lock()
+	latestServerStats, ok := BackendServerStats[identifier]
 	delete(BackendServerStats, identifier)
 	BackendServerStatsMutex.Unlock()
+
+	exporter.ServerStats.Delete(latestServerStats)
 }
