@@ -285,9 +285,9 @@ func startTimeout(identifier string) {
 
 	BackendServerStatsMutex.Lock()
 	latestServerStats, ok := BackendServerStats[identifier]
-	//if ok {
-	delete(BackendServerStats, identifier)
-	//}
+	if ok {
+		delete(BackendServerStats, identifier)
+	}
 	BackendServerStatsMutex.Unlock()
 
 	exporter.ServerStats.Delete(latestServerStats)
