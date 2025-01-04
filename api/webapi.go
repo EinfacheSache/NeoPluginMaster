@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/time/rate"
+	"image/color"
 	"log"
 	"neo-plugin-master/exporter"
 	"net/http"
@@ -64,7 +65,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		fmt.Println("\\033[31mMethod not allowed")
+		fmt.Println("\033[31mMethod not allowed")
 		return
 	}
 
@@ -79,7 +80,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		fmt.Println("\\033[31mrate limit exceeded")
+		fmt.Println("\033[31mrate limit exceeded")
 		return
 	}
 
@@ -88,14 +89,14 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 	statsRequest.identifier = r.Header.Get("identifier")
 	if statsRequest.identifier == "" {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Println("\\033[31mrequest failed: identifier not provided")
+		fmt.Println("\033[31mrequest failed: identifier not provided")
 		return
 	}
 
 	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err2 != nil {
 		http.Error(w, err2.Error(), http.StatusBadRequest)
-		fmt.Println("\\033[31mrequest failed: formatted error")
+		fmt.Println("\033[31mrequest failed: formatted error")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
