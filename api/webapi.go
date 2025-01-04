@@ -159,6 +159,9 @@ func pluginMetrics(statsRequest stats) {
 	exporter.PlayerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"PlayerCount"])
 	exporter.ServerAmount.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"ServerCount"])
 	exporter.ManageServer.With(prometheus.Labels{"server_type": statsRequest.ServerType}).Set(AmountStats[statsRequest.ServerType+"ManageServer"])
+	exporter.PlayerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"PlayerCount"])
+	exporter.ServerAmount.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"ServerCount"])
+	exporter.ManageServer.With(prometheus.Labels{"server_type": latestStats.ServerType}).Set(AmountStats[latestStats.ServerType+"ManageServer"])
 	AmountStatsMutex.RUnlock()
 
 	addLabel(exporter.ServerVersion, statsRequest.ServerType, "server_version", statsRequest.ServerVersion)
@@ -285,9 +288,7 @@ func startTimeout(identifier string) {
 
 	BackendServerStatsMutex.Lock()
 	latestServerStats, ok := BackendServerStats[identifier]
-	if ok {
-		delete(BackendServerStats, identifier)
-	}
+	delete(BackendServerStats, identifier)
 	BackendServerStatsMutex.Unlock()
 
 	exporter.ServerStats.Delete(latestServerStats)
