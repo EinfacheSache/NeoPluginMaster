@@ -243,14 +243,14 @@ func startTimeout(identifier string) {
 	latestStats, ok := BackendStats[identifier]
 	BackendStatsMutex.RUnlock()
 	if !ok {
-		fmt.Println("cant found key in map (", identifier, ")")
+		fmt.Println("\033[31mcan not found server with identifier (", identifier, ") in backend stats")
 		return
 	}
 
 	if time.Now().UnixMilli()-latestStats.latestPing < 1000*15 {
 		return
 	} else {
-		fmt.Println("The server has timed out (", identifier, ") PlayerCount(", latestStats.PlayerAmount, ")")
+		fmt.Println("\033[33mThe server has timed out (", identifier, ") PlayerCount(", latestStats.PlayerAmount, ")")
 	}
 
 	AmountStatsMutex.Lock()
@@ -289,7 +289,7 @@ func startTimeout(identifier string) {
 	latestServerStats, ok := BackendServerStats[identifier]
 	BackendServerStatsMutex.RUnlock()
 	if !ok {
-		fmt.Println("cant found key in map (", identifier, ")")
+		fmt.Println("\033[31mcan not found server with identifier (", identifier, ") in backend stats")
 		return
 	}
 
