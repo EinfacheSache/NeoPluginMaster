@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/time/rate"
-	"image/color"
 	"log"
 	"neo-plugin-master/exporter"
 	"net/http"
