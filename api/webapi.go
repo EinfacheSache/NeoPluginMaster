@@ -112,9 +112,7 @@ func pluginMetrics(statsRequest stats) {
 	latestServerStats, ok := BackendServerStats[statsRequest.identifier]
 	BackendServerStatsMutex.RUnlock()
 
-	fmt.Println("1")
 	if ok {
-		fmt.Println("1.1")
 		exporter.ServerStats.DeletePartialMatch(latestServerStats)
 	}
 
@@ -123,9 +121,7 @@ func pluginMetrics(statsRequest stats) {
 	BackendStats[statsRequest.identifier] = statsRequest
 	BackendStatsMutex.Unlock()
 
-	fmt.Println("2")
 	if ok {
-		fmt.Println("2.1")
 		AmountStatsMutex.Lock()
 		AmountStats[latestStats.ServerType+"PlayerCount"] -= latestStats.PlayerAmount
 		AmountStats[latestStats.ServerType+"ServerCount"] -= 1
