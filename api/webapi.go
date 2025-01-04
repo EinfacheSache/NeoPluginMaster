@@ -52,7 +52,7 @@ var BackendStatsMutex = new(sync.RWMutex)
 var BackendServerStats = map[string]prometheus.Labels{}
 var BackendServerStatsMutex = new(sync.RWMutex)
 
-var limiter = rate.NewLimiter(rate.Every(1*time.Second/30), 30)
+var limiter = rate.NewLimiter(rate.Every(1*time.Second/15), 15)
 
 func Run() {
 	http.HandleFunc("/api/stats/plugin", pluginMetricsFailedHandler)
@@ -64,7 +64,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		fmt.Errorf("Method not allowed")
+		fmt.Println("\\033[31mMethod not allowed")
 		return
 	}
 
@@ -79,7 +79,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		fmt.Errorf("rate limit exceeded")
+		fmt.Println("\\033[31mrate limit exceeded")
 		return
 	}
 
@@ -88,14 +88,14 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 	statsRequest.identifier = r.Header.Get("identifier")
 	if statsRequest.identifier == "" {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Errorf("request failed: identifier not provided")
+		fmt.Println("\\033[31mrequest failed: identifier not provided")
 		return
 	}
 
 	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err2 != nil {
 		http.Error(w, err2.Error(), http.StatusBadRequest)
-		fmt.Errorf("request failed: formatted error")
+		fmt.Println("\\033[31mrequest failed: formatted error")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
