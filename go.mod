@@ -1,13 +1,10 @@
 module neo-plugin-master
 
-go 1.23.4
+go 1.23
 
 require (
 	github.com/prometheus/client_golang v1.20.5
 	golang.org/x/time v0.8.0
-)
-
-require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/klauspost/compress v1.17.11 // indirect
