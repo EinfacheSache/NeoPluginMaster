@@ -64,7 +64,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		fmt.Println("Method not allowed")
+		fmt.Errorf("Method not allowed")
 		return
 	}
 
@@ -79,7 +79,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		fmt.Println("rate limit exceeded")
+		fmt.Errorf("rate limit exceeded")
 		return
 	}
 
@@ -88,14 +88,14 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 	statsRequest.identifier = r.Header.Get("identifier")
 	if statsRequest.identifier == "" {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Println("request failed: identifier not provided")
+		fmt.Errorf("request failed: identifier not provided")
 		return
 	}
 
 	err2 := json.NewDecoder(r.Body).Decode(&statsRequest)
 	if err2 != nil {
 		http.Error(w, err2.Error(), http.StatusBadRequest)
-		fmt.Println("request failed: formatted error")
+		fmt.Errorf("request failed: formatted error")
 		return
 	}
 	w.WriteHeader(http.StatusOK)
