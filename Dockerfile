@@ -1,5 +1,5 @@
 # Temp container to build using Go for ARM/ARM64
-FROM --platform=$BUILDPLATFORM golang:1.25-bookworm AS builder
+FROM --platform=$BUILDPLATFORM golang:1.25-rc-bookworm AS builder
 
 # Set environment variables for ARM architecture
 ARG TARGETOS
