@@ -19,9 +19,9 @@ RUN GOOS=$TARGETOS GOARCH=$TARGETARCH GOARM=${TARGETVARIANT#v} ./build.sh
 
 # Actual runtime container
 FROM --platform=$TARGETPLATFORM alpine:3
-ENV ARTIFACT_NAME=neo-plugin-master
+ENV ARTIFACT_NAME=plugin-master
 ENV APP_HOME=/usr/app/
-ARG USERNAME=neopluginmaster
+ARG USERNAME=pluginmaster
 WORKDIR $APP_HOME
 
 # Copy the built application from the builder container
@@ -41,4 +41,4 @@ EXPOSE 8069
 EXPOSE 8080
 
 # Run the application
-CMD ["./neo-plugin-master"]
+CMD ["./plugin-master"]

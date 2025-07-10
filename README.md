@@ -1,10 +1,10 @@
-# NeoPluginMaster
+# PluginMaster
 
-The NeoPluginMaster is a program that serves as a master for the NeoProtect plugin, collecting specific data such as plugin version, online players, and server version.
+The PluginMaster is a program that serves as a master for Plugins from EinfacheSache, collecting specific data such as plugin version, online players, and server version.
 
 ## Functionality
 
-The NeoPluginMaster program is capable of collecting various metrics from the NeoProtect plugin. These metrics include:
+The PluginMaster program is capable of collecting various metrics from the plugin. These metrics include:
 
 - **PlayerAmount:** Number of online players on the server.
 - **ServerAmount:** General server metrics.
@@ -15,7 +15,6 @@ The NeoPluginMaster program is capable of collecting various metrics from the Ne
 - **VersionStatus:** Status metrics related to the versions.
 - **VersionError:** Error metrics related to the versions.
 - **UpdateSetting:** Metrics concerning update settings.
-- **NeoProtectPlan:** Information about the NeoProtect plan.
 - **JavaVersion:** Version of Java installed.
 - **OsName:** Operating system name.
 - **OsArch:** Operating system architecture.

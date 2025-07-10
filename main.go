@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"neo-plugin-master/api"
-	"neo-plugin-master/exporter"
+	"plugin-master/api"
+	"plugin-master/exporter"
 	"time"
 )
 
