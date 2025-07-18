@@ -1,4 +1,4 @@
-package api
+package webapi
 
 import (
 	"encoding/json"
@@ -130,7 +130,7 @@ func pluginMetricsFailedHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pluginMetrics(statsRequest stats) {
-	fmt.Println("ID (", statsRequest.identifier, ")", " PlayerCount(", statsRequest.PlayerAmount, ")", "ServerType(", statsRequest.ServerType, ")")
+	fmt.Println("ID (", statsRequest.identifier, ")", "PlayerCount(", statsRequest.PlayerAmount, ")", "ServerType(", statsRequest.ServerType, ")")
 
 	statsRequest.latestPing = time.Now().UnixMilli()
 

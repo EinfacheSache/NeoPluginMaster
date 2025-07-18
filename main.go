@@ -9,16 +9,31 @@ import (
 
 func main() {
 	go exporter.Run()
-	go api.Run()
+	go webapi.Run()
 	writer()
 }
 
 func writer() {
+
 	time.Sleep(time.Millisecond * 500)
+
 	for {
-		api.AmountStatsMutex.RLock()
-		fmt.Println("PlayerCount", api.AmountStats["PlayerCount"]+api.AmountStats["bungeecordPlayerCount"]+api.AmountStats["velocityPlayerCount"]+api.AmountStats["spigotPlayerCount"], "[ Bungee(", api.AmountStats["bungeecordPlayerCount"], ") Velocity(", api.AmountStats["velocityPlayerCount"], ") Spigot(", api.AmountStats["spigotPlayerCount"], ") Rest(", api.AmountStats["PlayerCount"], ") ]")
-		api.AmountStatsMutex.RUnlock()
+		webapi.AmountStatsMutex.RLock()
+
+		var bungeecordPlayerCount = webapi.AmountStats["bungeecordPlayerCount"]
+		var velocityPlayerCount = webapi.AmountStats["velocityPlayerCount"]
+		var spigotPlayerCount = webapi.AmountStats["spigotPlayerCount"]
+		var restPlayerCount = webapi.AmountStats["PlayerCount"]
+
+		webapi.AmountStatsMutex.RUnlock()
+
+		fmt.Println(
+			"PlayerCount (", bungeecordPlayerCount+velocityPlayerCount+spigotPlayerCount+restPlayerCount, ") [ "+
+				"Bungee(", bungeecordPlayerCount, ") "+
+				"Velocity(", velocityPlayerCount, ") "+
+				"Spigot(", spigotPlayerCount, ") "+
+				"Rest(", restPlayerCount, ") ]")
+
 		time.Sleep(time.Second * 5)
 	}
 }
